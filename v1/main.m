@@ -5,15 +5,15 @@ clear all
 close all
 clc
 
-global vmax L intervallo % parametri del modello
+global vmax d intervallo % parametri del modello
 global K1 K2 K3 P1 P2 % pesi del funzionale
 global N Tc % parametri della simulazione
-global x0 y0 theta0 theta0Grad phi0 phi0Grad % condizioni iniziali
-global x y theta phi u
+global x0 y0 theta0 theta0Grad % condizioni iniziali
+global x y theta u
 
 % Valori parametri modello
-vmax = 90/3.6; % velocita' massima in m/s
-L = 1.55; %lunghezza bicicletta (wheelbase)
+vmax = 20/3.6; % velocita' massima in m/s
+d = 0.65/2; %lunghezza semiasse ruote
 
 % Condizioni iniziali
 % input ascissa e ordinata dispositivo (in metri)
@@ -28,23 +28,15 @@ if isempty(y0)
 end
 
 % input orientazione dispositivo (in gradi)
-theta0Grad = input('Orientazione iniziale veicolo in gradi (default 0°): ');
+theta0Grad = input('Orientazione iniziale in gradi (default 0°): ');
 if isempty(theta0Grad)
     theta0Grad = 0;
 end
 theta0 = deg2rad(theta0Grad); % conversione in radianti
 
-% input orientazione ruota frontale (in gradi)
-phi0Grad = input('Orientazione iniziale ruota frontale in gradi (default 0°): ');
-if isempty(phi0Grad)
-    phi0Grad = 0;
-end
-phi0 = deg2rad(phi0Grad); % conversione in radianti
-
 %fprintf('\nPosizione iniziale Segway in metri: (%f,%f)\n',x0,y0);
 %fprintf('Orientazione iniziale in gradi: %f\n',theta0Grad);
-fprintf('Orientazione iniziale veicolo in radianti: %f\n\n',theta0);
-fprintf('Orientazione iniziale ruota frontale in radianti: %f\n\n',phi0);
+fprintf('Orientazione iniziale in radianti: %f\n\n',theta0);
 
 % Vincoli sul controllo (limiti sulle velocita' linerare e angolare)
 U1inf = 0;
@@ -52,8 +44,8 @@ U1inf = 0;
 %U1inf(1) = 0; % nell'intervallo 1 si muove solo con velocita' di avanzamento positiva
 %U1inf(2) = -vmax; % nell'intervallo 2 per posizionarsi si aggiunge la possibilità di fare retromarcia
 U1sup = vmax;
-U2inf = deg2rad(-100); 
-U2sup = deg2rad(100);
+U2inf = -vmax/d;
+U2sup = vmax/d;
 
 %fprintf('Velocità lineare in m/s (min,max): (%f,%f)\n',U1inf,U1sup);
 %fprintf('Velocità angolare in m/s (min,max): (%f,%f)\n\n',U2inf,U2sup);
@@ -63,11 +55,11 @@ U2sup = deg2rad(100);
 % dispositivo dall'obiettivo
 distanza0=(x0^2+y0^2)^(1/2);
 fprintf('Distanza dall''obiettivo: %f m\n', distanza0);
-valoreSoglia=15; % valore in metri di default della soglia di commutazione 2
+valoreSoglia=4; % valore in metri di default della soglia di commutazione 2
 soglia(1)=1000*distanza0; % per semplicità aumento a piacere la soglia dell'intervallo I1
 % soglie prestabilite in base al problema
 soglia(2)=valoreSoglia*1.5; % switch del funzionale
-soglia(3)=5; % valore in metri della soglia di commutazione 3 (per u nullo)
+soglia(3)=0.5; % valore in metri della soglia di commutazione 3 (per u nullo)
 soglia(4)=0; % soglia aggiuntiva
 
 % Zona di appartenenza iniziale (dominio normale rispetto asse x)
@@ -105,24 +97,41 @@ K1 = 10000; % Peso termine x
 K2 = 10000; % Peso termine y
 K3 = 10000; % Peso termine theta
 
-% Parametri della simulazione di default
-Ttotdef=10; % durata esperimento in secondi
+% % Parametri della simulazione di default
+% Ttotdef=10; % durata esperimento in secondi
+% 
+% % Parametri della simulazione cambiati dall'utente
+% Ttot=input('Durata esperimento in secondi (default 10 s): ');
+% if isempty(Ttot)
+%     Ttot = Ttotdef;
+% end
+% 
+% Ntotdef = Ttot*2; % Almeno due campioni al secondo
+% fprintf('Numero totale Ntot di istanti da campionare');
+% Ntot=input([' (Massimo ',num2str(Ntotdef),' campioni per un esperimento di ',num2str(Ttot),' s): ']);
+% if (isempty(Ntot) || Ntot>Ntotdef) % Per la regolarita' della traiettoria Tc >= 0.5 s
+%     Ntot = Ntotdef;
+% end
+% 
+% N=Ntot;
+% Tc=Ttot/Ntot; % tempo di campionamento
 
-% Parametri della simulazione cambiati dall'utente
-Ttot=input('Durata esperimento in secondi (default 10 s): ');
-if isempty(Ttot)
-    Ttot = Ttotdef;
-end
+%dmax=ceil(distanza0/0.5); %0.5 m/s velocità media minima
 
-Ntotdef = Ttot*2; % Almeno due campioni al secondo
-fprintf('Numero totale Ntot di istanti da campionare');
-Ntot=input([' (Massimo ',num2str(Ntotdef),' campioni per un esperimento di ',num2str(Ttot),' s): ']);
-if (isempty(Ntot) || Ntot>Ntotdef) % Per la regolarita' della traiettoria Tc >= 0.5 s
-    Ntot = Ntotdef;
-end
-
+%Calcolo tempo minimo esperimento
+Tc=0.5;
+Tmin=floor(distanza0/U1sup);
+Ttot=search(Tmin);
+fprintf('Ttot =',Ttot);
+% T=zeros(1,dmax/Tc);
+% a=0;
+% b=dmax/Tc;
+% 
+% slot = binarySearch(T,a,b);
+% Ttot= Tc*(slot+1);
+Ntot = Ttot/Tc;
 N=Ntot;
-Tc=Ttot/Ntot; % tempo di campionamento
+
 
 % Generazione dell'asse dei tempi
 tempo=0:Tc:Ttot; % N+1 elementi
@@ -137,7 +146,6 @@ Beq=[];
 xtot=x0;
 ytot=y0;
 thetatot=theta0;
-phitot=phi0;
 u1tot=[];
 u2tot=[];
 
@@ -149,7 +157,6 @@ vettzeri=[];
 xfull=[];
 yfull=[];
 thetafull=[];
-phifull=[];
 u1full=[];
 u2full=[];
 
@@ -198,12 +205,12 @@ while N>0
     if intervallo<3 % Calcolo controllo ottimo; ottengo x,y,theta,u global
         % Chiamata fmincon
         [ingresso,costo,EF,uscita,moltiplicatori]...
-            = fmincon('funzionale',U0,A,B,Aeq,Beq,LB,UB);
+            = fmincon('c_functional',U0,A,B,Aeq,Beq,LB,UB);
     end
     
     if intervallo == 3 % Calcolo l'evoluzione per ingresso nullo; ottengo x,y,theta,u global
         unullo=zeros(1,2*N);
-        costozero=funzionale(unullo);
+        costozero=c_functional(unullo);
         finito=true;
     end
     
@@ -244,7 +251,6 @@ while N>0
         intervallo=intervallo+1;
         disp(['Commutazione all''istante ',num2str((L-1)*Tc+t_in),'; passaggio all''intervallo (superiore) ',num2str(intervallo)])
     end
-    
     if and(x(L)^2+y(L)^2>=soglia(intervallo)^2, not(finito))
         intervallo=intervallo-1;
         disp(['L = ',num2str(L),'; passaggio all''intervallo (inferiore) ',num2str(intervallo)])
@@ -261,13 +267,11 @@ while N>0
     int_x=x(2:L);
     int_y=y(2:L);
     int_theta=theta(2:L);
-    int_phi=phi(2:L);
     
     % concatenazione dallo stato iniziale
     nuovo_xtot=[xtot,int_x];
     nuovo_ytot=[ytot,int_y];
     nuovo_thetatot=[thetatot,int_theta];
-    nuovo_phitot=[phitot,int_phi];
     
     % segmenti degli ingressi riferiti all'intervallo
     int_u1=u(1:L-1);
@@ -281,7 +285,6 @@ while N>0
     xfull(segmento,:)=[vettzeri,x]; % estrae la riga segmento dalla matrice
     yfull(segmento,:)=[vettzeri,y];
     thetafull(segmento,:)=[vettzeri,theta];
-    phifull(segmento,:)=[vettzeri,phi];
         
     % ingresso esteso a tutto l'intervallo
     u1full(segmento,:)=[vettzeri,u(1:N)];
@@ -292,7 +295,6 @@ while N>0
     xtot=nuovo_xtot;
     ytot=nuovo_ytot;
     thetatot=nuovo_thetatot;
-    phitot=nuovo_phitot;
     % ingresso
     u1tot=nuovo_u1tot;
     u2tot=nuovo_u2tot;
@@ -301,7 +303,6 @@ while N>0
     x0=xtot(length(xtot));
     y0=ytot(length(ytot));
     theta0=thetatot(length(thetatot));
-    phi0=phitot(length(phitot));
     
     % campioni rimanenti
     N=N-(L-1);
@@ -348,53 +349,53 @@ if istantecomm(2)~=0
     fprintf('Durata esperimento: %f s\n',istantecomm(2));
     fprintf('-------------------------------------------------------------\n');
 
-close all
-figure(1), plot(tempo,xtot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('x_{1}(t) finale')
-figure(2), plot(tempo,ytot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('x_{2}(t) finale')
-figure(3), plot(tempo,thetatot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('x_{3}(t) finale')
-figure(4), plot(tempo(1:Ntot),u1tot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{1}(t)'), title('u_{1}(t) finale')
-figure(5), plot(tempo(1:Ntot),u2tot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('u_{2}(t) finale')
+% close all
+% figure(1), plot(tempo,xtot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('x_{1}(t) finale')
+% figure(2), plot(tempo,ytot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('x_{2}(t) finale')
+% figure(3), plot(tempo,thetatot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('x_{3}(t) finale')
+% figure(4), plot(tempo(1:Ntot),u1tot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{1}(t)'), title('u_{1}(t) finale')
+% figure(5), plot(tempo(1:Ntot),u2tot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('u_{2}(t) finale')
+% 
+% figure(6), plot(tempo,xfull,'linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('componenti x_{1}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure(7), plot(tempo,yfull,'linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('componenti x_{2}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure(8), plot(tempo,thetafull,'linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('componenti x_{3}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure(9), plot(tempo(1:Ntot),u1full,'linewidth',1), grid on,  xlabel('t'), ylabel('u_{1}(t)'), title('componenti u_{1}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure(10), plot(tempo(1:Ntot),u2full,'linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('componenti u_{2}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% 
+% % Plot della traiettoria
+% figure(11),plot(xtot,ytot,'k -- o','linewidth',1),...
+%     axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('traiettoria ottimizzata')
+% hold on
+% % Plot della soglia
+% n=0:0.01:2*pi; 
+% plot(soglia(2)*cos(n), soglia(2)*sin(n),'r -','linewidth',2) 
+% hold on
+% % Plot dell'orientazione per ogni campione
+% lunghezza = input('Lunghezza frecce orientazione (default 1 m): ');
+% if isempty(lunghezza)
+%     lunghezza = 1; % diminuire o aumentare per regolare la lunghezza delle frecce nel grafico
+% end
+% rho=lunghezza*ones(1,length(thetatot));
+% [a,b] = pol2cart(thetatot,rho);
+% quiver(xtot,ytot,a, b,0,'r','linewidth',1)
+% hold on
+% legend ('traiettoria','soglia','orientazione')
+% hold off
 
-figure(6), plot(tempo,xfull,'linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('componenti x_{1}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure(7), plot(tempo,yfull,'linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('componenti x_{2}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure(8), plot(tempo,thetafull,'linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('componenti x_{3}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure(9), plot(tempo(1:Ntot),u1full,'linewidth',1), grid on,  xlabel('t'), ylabel('u_{1}(t)'), title('componenti u_{1}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure(10), plot(tempo(1:Ntot),u2full,'linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('componenti u_{2}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
+% % Plot confronto traiettorie per ogni intervallo
+% figure(12),plot(xfull(1,:),yfull(1,:), '-- o','linewidth',1),...
+%     axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('confronto traiettorie')
+% hold on
+% plot(xtot,ytot, 'k -- o','linewidth',1)
+% hold on
+% legend ('traiettoria non ottimizzata','traiettoria ottimizzata')
 
-% Plot della traiettoria
-figure(11),plot(xtot,ytot,'k -- o','linewidth',1),...
-    axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('traiettoria ottimizzata')
-hold on
-% Plot della soglia
-n=0:0.01:2*pi; 
-plot(soglia(2)*cos(n), soglia(2)*sin(n),'r -','linewidth',2) 
-hold on
-% Plot dell'orientazione per ogni campione
-lunghezza = input('Lunghezza frecce orientazione (default 1 m): ');
-if isempty(lunghezza)
-    lunghezza = 1; % diminuire o aumentare per regolare la lunghezza delle frecce nel grafico
-end
-rho=lunghezza*ones(1,length(thetatot));
-[a,b] = pol2cart(thetatot,rho);
-quiver(xtot,ytot,a, b,0,'r','linewidth',1)
-hold on
-legend ('traiettoria','soglia','orientazione')
-hold off
-
-% Plot confronto traiettorie per ogni intervallo
-figure(12),plot(xfull(1,:),yfull(1,:), '-- o','linewidth',1),...
-    axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('confronto traiettorie')
-hold on
-plot(xtot,ytot, 'k -- o','linewidth',1)
-hold on
-legend ('traiettoria non ottimizzata','traiettoria ottimizzata')
-
-hold off
+% hold off
 
 disp('FINE.')
 else

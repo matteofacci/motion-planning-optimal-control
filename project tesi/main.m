@@ -5,15 +5,15 @@ clear all
 close all
 clc
 
-global vmax L intervallo % parametri del modello
+global vmax d intervallo % parametri del modello
 global K1 K2 K3 P1 P2 % pesi del funzionale
 global N Tc % parametri della simulazione
-global x0 y0 theta0 theta0Grad phi0 phi0Grad % condizioni iniziali
-global x y theta phi u
+global x0 y0 theta0 theta0Grad % condizioni iniziali
+global x y theta u
 
 % Valori parametri modello
-vmax = 90/3.6; % velocita' massima in m/s
-L = 1.55; %lunghezza bicicletta (wheelbase)
+vmax = 20/3.6; % velocita' massima in m/s
+d = 0.65/2; %lunghezza semiasse ruote
 
 % Condizioni iniziali
 % input ascissa e ordinata dispositivo (in metri)
@@ -28,32 +28,24 @@ if isempty(y0)
 end
 
 % input orientazione dispositivo (in gradi)
-theta0Grad = input('Orientazione iniziale veicolo in gradi (default 0°): ');
+theta0Grad = input('Orientazione iniziale in gradi (default 0°): ');
 if isempty(theta0Grad)
     theta0Grad = 0;
 end
 theta0 = deg2rad(theta0Grad); % conversione in radianti
 
-% input orientazione ruota frontale (in gradi)
-phi0Grad = input('Orientazione iniziale ruota frontale in gradi (default 0°): ');
-if isempty(phi0Grad)
-    phi0Grad = 0;
-end
-phi0 = deg2rad(phi0Grad); % conversione in radianti
-
 %fprintf('\nPosizione iniziale Segway in metri: (%f,%f)\n',x0,y0);
 %fprintf('Orientazione iniziale in gradi: %f\n',theta0Grad);
-fprintf('Orientazione iniziale veicolo in radianti: %f\n\n',theta0);
-fprintf('Orientazione iniziale ruota frontale in radianti: %f\n\n',phi0);
+fprintf('Orientazione iniziale in radianti: %f\n\n',theta0);
 
 % Vincoli sul controllo (limiti sulle velocita' linerare e angolare)
-U1inf = 0;
-%U1inf = -vmax;
+%U1inf = 0;
+U1inf = -vmax;
 %U1inf(1) = 0; % nell'intervallo 1 si muove solo con velocita' di avanzamento positiva
 %U1inf(2) = -vmax; % nell'intervallo 2 per posizionarsi si aggiunge la possibilità di fare retromarcia
 U1sup = vmax;
-U2inf = deg2rad(-100); 
-U2sup = deg2rad(100);
+U2inf = -vmax/d;
+U2sup = vmax/d;
 
 %fprintf('Velocità lineare in m/s (min,max): (%f,%f)\n',U1inf,U1sup);
 %fprintf('Velocità angolare in m/s (min,max): (%f,%f)\n\n',U2inf,U2sup);
@@ -63,11 +55,11 @@ U2sup = deg2rad(100);
 % dispositivo dall'obiettivo
 distanza0=(x0^2+y0^2)^(1/2);
 fprintf('Distanza dall''obiettivo: %f m\n', distanza0);
-valoreSoglia=15; % valore in metri di default della soglia di commutazione 2
+valoreSoglia=4; % valore in metri di default della soglia di commutazione 2
 soglia(1)=1000*distanza0; % per semplicità aumento a piacere la soglia dell'intervallo I1
 % soglie prestabilite in base al problema
 soglia(2)=valoreSoglia*1.5; % switch del funzionale
-soglia(3)=5; % valore in metri della soglia di commutazione 3 (per u nullo)
+soglia(3)=0.5; % valore in metri della soglia di commutazione 3 (per u nullo)
 soglia(4)=0; % soglia aggiuntiva
 
 % Zona di appartenenza iniziale (dominio normale rispetto asse x)
@@ -137,7 +129,6 @@ Beq=[];
 xtot=x0;
 ytot=y0;
 thetatot=theta0;
-phitot=phi0;
 u1tot=[];
 u2tot=[];
 
@@ -149,7 +140,6 @@ vettzeri=[];
 xfull=[];
 yfull=[];
 thetafull=[];
-phifull=[];
 u1full=[];
 u2full=[];
 
@@ -261,13 +251,11 @@ while N>0
     int_x=x(2:L);
     int_y=y(2:L);
     int_theta=theta(2:L);
-    int_phi=phi(2:L);
     
     % concatenazione dallo stato iniziale
     nuovo_xtot=[xtot,int_x];
     nuovo_ytot=[ytot,int_y];
     nuovo_thetatot=[thetatot,int_theta];
-    nuovo_phitot=[phitot,int_phi];
     
     % segmenti degli ingressi riferiti all'intervallo
     int_u1=u(1:L-1);
@@ -281,7 +269,6 @@ while N>0
     xfull(segmento,:)=[vettzeri,x]; % estrae la riga segmento dalla matrice
     yfull(segmento,:)=[vettzeri,y];
     thetafull(segmento,:)=[vettzeri,theta];
-    phifull(segmento,:)=[vettzeri,phi];
         
     % ingresso esteso a tutto l'intervallo
     u1full(segmento,:)=[vettzeri,u(1:N)];
@@ -292,7 +279,6 @@ while N>0
     xtot=nuovo_xtot;
     ytot=nuovo_ytot;
     thetatot=nuovo_thetatot;
-    phitot=nuovo_phitot;
     % ingresso
     u1tot=nuovo_u1tot;
     u2tot=nuovo_u2tot;
@@ -301,7 +287,6 @@ while N>0
     x0=xtot(length(xtot));
     y0=ytot(length(ytot));
     theta0=thetatot(length(thetatot));
-    phi0=phitot(length(phitot));
     
     % campioni rimanenti
     N=N-(L-1);
