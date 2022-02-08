@@ -1,402 +1,358 @@
 %PROGRAMMA PRINCIPALE PER DETERMINARE IL CONTROLLO OTTIMO IN UN MODELLO
 %UNICICLO
 %--------------------------------------------------------------------------
-clear all
-close all
-clc
+clc; clear all; close all; warning off;
 
-global vmax d intervallo % parametri del modello
-global K1 K2 K3 P1 P2 % pesi del funzionale
-global N Tc % parametri della simulazione
-global x0 y0 theta0 theta0Grad % condizioni iniziali
-global x y theta u
+%%
+
+global W1 W2 % weights of the functional
+global N St interval % simulation parameters
+global x0 y0 theta0 x1 y1 theta1 % initial conditions and final orientation
+global x y theta u % state and control variables
 
 % Add that folder plus all subfolders to the path.
 addpath(genpath('utilities'));
+addpath(genpath('videos'));
 
-robotParams;
+%% Starting and ending poses by user input
 
-% Condizioni iniziali
-% input ascissa e ordinata dispositivo (in metri)
-x0 = input('Ascissa iniziale in metri (default 0 m): ');
+% Starting conditions
+% Device abscissa and ordinate input (in meters)
+x0 = input('Initial abscissa in meters [0 m]: '); 
 if isempty(x0)
     x0 = 0;
 end
 
-y0 = input('Ordinata iniziale in metri (default 0 m): ');
+y0 = input('Initial ordinate in meters [0 m]: ');
 if isempty(y0)
     y0 = 0;
 end
 
-% input orientazione dispositivo (in gradi)
-theta0Grad = input('Orientazione iniziale in gradi (default 0°): ');
-if isempty(theta0Grad)
-    theta0Grad = 0;
+% Device starting orientation input (in degrees)
+theta0_grad = input('Initial orientation in degrees [0 °]: ');
+if isempty(theta0_grad)
+    theta0_grad = 0;
 end
-theta0 = deg2rad(theta0Grad); % conversione in radianti
+theta0 = deg2rad(theta0_grad); % conversion to radians
 
-%fprintf('\nPosizione iniziale Segway in metri: (%f,%f)\n',x0,y0);
-%fprintf('Orientazione iniziale in gradi: %f\n',theta0Grad);
-fprintf('Orientazione iniziale in radianti: %f\n\n',theta0);
-
-% % Vincoli sul controllo (limiti sulle velocita' linerare e angolare)
-% %U1inf = 0;
-% U1inf = -vmax;
-% %U1inf(1) = 0; % nell'intervallo 1 si muove solo con velocita' di avanzamento positiva
-% %U1inf(2) = -vmax; % nell'intervallo 2 per posizionarsi si aggiunge la possibilità di fare retromarcia
-% U1sup = vmax;
-% U2inf = -vmax/d;
-% U2sup = vmax/d;
-
-%fprintf('Velocità lineare in m/s (min,max): (%f,%f)\n',U1inf,U1sup);
-%fprintf('Velocità angolare in m/s (min,max): (%f,%f)\n\n',U2inf,U2sup);
-
-% Soglia
-% Calcolo la soglia base corrispondente alla distanza iniziale che separa il
-% dispositivo dall'obiettivo
-distanza0=(x0^2+y0^2)^(1/2);
-fprintf('Distanza dall''obiettivo: %f m\n', distanza0);
-valoreSoglia=1; % valore in metri di default della soglia di commutazione 2
-soglia(1)=1000*distanza0; % per semplicità aumento a piacere la soglia dell'intervallo I1
-% soglie prestabilite in base al problema
-soglia(2)=valoreSoglia*1.5; % switch del funzionale
-soglia(3)=0.05; % valore in metri della soglia di commutazione 3 (per u nullo)
-soglia(4)=0; % soglia aggiuntiva
-
-% % Zona di appartenenza iniziale (dominio normale rispetto asse x)
-% % se il dispositivo è nell'intervallo 2 (tra le due circonferenze - vicino all'obiettivo)
-% if x0^2+y0^2<soglia(2)^2 && x0^2+y0^2>=soglia(3)^2
-%     intervallo=2;
-%     % se è nell'intervallo3 (posizione obiettivo)
-% elseif x0^2+y0^2<soglia(3)^2
-%     intervallo=3;
-% else
-%     intervallo=1;
-% end
-% 
-% if intervallo==1
-%     fprintf('Il dispositivo si trova inizialmente in I1.\n\n');
-% elseif intervallo==2
-%     fprintf('Il dispositivo si trova inizialmente in I2.\n\n');
-% else
-%     fprintf('Il dispositivo si trova già nella posizione obiettivo.\n');
-%     fprintf('Ottimizzazione non necessaria.\n\n');
-% end
-% 
-% % Pesi della parte variabile del funzionale, termini u1^2 e u2^2
-% PP1(1) = 1;
-% PP1(2) = 10^9;
-% PP1(3) = 0; % non utilizzato perché relativo all'intervallo sotto soglia di attivazione (intervallo(3))
-% PP1(4) = 0;
-% PP2(1) = 10^9;
-% PP2(2) = 1;
-% PP2(3) = 0; % come PP1(3)
-% PP2(4) = 0;
-% 
-% % Pesi fissi del funzionale
-% K1 = 10^10; % Peso termine x
-% K2 = 10^10; % Peso termine y
-% K3 = 10^10; % Peso termine theta
-
-% Parametri della simulazione di default
-Ttotdef=10; % durata esperimento in secondi
-
-% Parametri della simulazione cambiati dall'utente
-Ttot=input('Durata esperimento in secondi (default 10 s): ');
-if isempty(Ttot)
-    Ttot = Ttotdef;
+% Ending conditions
+% Device abscissa and ordinate input (in meters)
+x0 = input('Final abscissa in meters [0 m]: '); 
+if isempty(x0)
+    x1 = 0;
 end
 
-Ntotdef = Ttot*2; % Almeno due campioni al secondo
-fprintf('Numero totale Ntot di istanti da campionare');
-Ntot=input([' (Massimo ',num2str(Ntotdef),' campioni per un esperimento di ',num2str(Ttot),' s): ']);
-if (isempty(Ntot) || Ntot>Ntotdef) % Per la regolarita' della traiettoria Tc >= 0.5 s
-    Ntot = Ntotdef;
+y0 = input('Final ordinate in meters [0 m]: ');
+if isempty(y0)
+    y1 = 0;
 end
 
-N=Ntot;
-Tc=Ttot/Ntot; % tempo di campionamento
+% Device final orientation input (in degrees)
+theta1_grad = input('Final orientation in degrees [0 °]: ');
+if isempty(theta1_grad)
+    theta1_grad = 0;
+end
+theta1 = deg2rad(theta1_grad); % conversion to radians
 
-[xtot,ytot,thetatot,u1tot,u2tot,xfull,yfull,thetafull,u1full,u2full,tempo,istantecomm] = optimalControl(x0,y0,theta0,Tc,Ttot,N,Ntot,vmax,d,soglia);
+%% Simulation parameters
 
-% % Generazione dell'asse dei tempi
-% tempo=0:Tc:Ttot; % N+1 elementi
-% 
-% % Input non necessari di fmincon
-% A=[];
-% B=[];
-% Aeq=[];
-% Beq=[];
-% 
-% % Inizializzazione dei vettori di stato e ingresso
-% xtot=x0;
-% ytot=y0;
-% thetatot=theta0;
-% u1tot=[];
-% u2tot=[];
-% 
-% finito=false; % flag
-% 
-% % Preparazione dei vettori x y theta u1 e u2 riferiti all'intero
-% % intervallo di tempo per confronto
-% vettzeri=[];
-% xfull=[];
-% yfull=[];
-% thetafull=[];
-% u1full=[];
-% u2full=[];
-% 
-% fprintf('\n\n');
-% 
-% % INIZIO CICLO
-% segmento=0;
-% istantecomm=[0,0]; % vettore contenente gli istanti di switch definitivi
-% 
-% while N>0
-% 
-%     disp('-------------------------------------------------------------')
-%     segmento=segmento+1;
-%     t_in=(Ntot-N)*Tc; % Corrisponde a tempo(Ntot-N+1);
-%     indice_in=Ntot-N+1;
-%     disp(['Inizio analisi segmento di tempo ',num2str(segmento),' da t_in = ',num2str(t_in),' a t_fin = ',num2str(Ntot*Tc)])
-%     disp(['N = ',num2str(N)])
-%     disp(['dispositivo nell''intervallo I',num2str(intervallo)])
-% 
-%     % Inizializzazione delle grandezze dipendenti da N
-%     % Definizione dimensione e vincoli su ingresso per fmincon
-%     vettore=ones(1,N); % crea vettore di valori unitari
-%     U1min=U1inf*vettore;
-%     %if intervallo==1
-%     %    U1min=U1inf(1)*vettore;
-%     %else
-%     %    U1min=U1inf(2)*vettore;
-%     %end
-%     U1max=U1sup*vettore;
-%     U2min=U2inf*vettore;
-%     U2max=U2sup*vettore;
-%     LB=horzcat(U1min,U2min); % vettore di dimensione 2N
-%     UB=horzcat(U1max,U2max);
-%     U0=0.2*UB;
-% 
-%     % Peso attuale termine discontinuo
-%     P1=PP1(intervallo);
-%     P2=PP2(intervallo);
-% 
-%     disp(['Peso P1 variabile pari a ',num2str(P1)])
-%     disp(['Peso P2 variabile pari a ',num2str(P2)])
-% 
-%     % Operazione diversa per I1 e I2 e quello sotto soglia minima I3.
-%     % Per tutti occorre trovare l'ingresso (fmincon), tranne per I3
-%     % intervallo con l'ingresso posto a zero
-%     if intervallo<3 % Calcolo controllo ottimo; ottengo x,y,theta,u global
-%         %         % Chiamata fmincon
-%         %         [ingresso,costo,EF,uscita,moltiplicatori]...
-%         %             = fmincon('funzionale',U0,A,B,Aeq,Beq,LB,UB);
-% 
-%         options = optimoptions('fmincon',...
-%             'ConstraintTolerance',1e-12,'StepTolerance',1e-10,'MaxFunctionEvaluations',10000);
-% 
-%         [ingresso,costo,EF,uscita,moltiplicatori]...
-%             = fmincon('funzionale',U0,A,B,Aeq,Beq,LB,UB,[],options);
-%     end
-% 
-%     if intervallo == 3 % Calcolo l'evoluzione per ingresso nullo; ottengo x,y,theta,u global
-%         unullo=zeros(1,2*N);
-%         costozero=funzionale(unullo);
-%         finito=true;
-%     end
-% 
-%     % Per il segmento attuale, trovo, se esiste, l'istante di commutazione
-%     % corrispondente al raggiungimento di uno dei valori di soglia.
-%     % N campioni di ingresso, N+1 di stato, con il primo elemento pari allo
-%     % stato iniziale, quindi inutile da verificare
-%     L=2;
-%     % x(1)=x0, inutile riconsiderarlo. Stesso per y e theta
-% 
-%     % finchè il dispositivo si trova nell'intervallo ...
-%     while and(x(L)^2+y(L)^2>=soglia(intervallo+1)^2 ...
-%             && x(L)^2+y(L)^2<soglia(intervallo)^2, L<=N) %length(x)=N+1
-%         disp(['L = ',num2str(L),'; dispositivo ancora nell''intervallo ',num2str(intervallo)])
-%         L=L+1; % itero fino ad arrivare alla fine dell'intervallo
-%     end
-% 
-%     if L==N+1 % x(N+1)=x(N Tc)
-%         disp('Nessuna (ulteriore) commutazione effettuata entro il tempo')
-%         finito=true;
-%     end
-% 
-%     if and(x(L)^2+y(L)^2<soglia(intervallo+1)^2, not(finito))
-%         if intervallo==1
-%             istantecomm(intervallo)=(L-1)*Tc+t_in;
-%             % Calcolo tempo di reazione tra soglia e switch
-%             dSwitch1=(x(L)^2+y(L)^2)^(1/2); % posizione primo campione dopo lo switch
-%             dSogliaSwitch=soglia(2)-dSwitch1; % distanza tra il campione e la soglia
-%             tReazione=dSogliaSwitch/abs(u(L-1)); % tempo di reazione per lo switch
-%         end
-%         if intervallo==2
-%             istantecomm(intervallo)=(L-1)*Tc+t_in;
-%             % Calcolo tempo totale di arrivo tra soglia e switch
-%             dSwitch2=(x(L)^2+y(L)^2)^(1/2); % posizione primo campione dopo lo switch
-%             dSogliaSwitch2=soglia(3)-dSwitch2; % distanza tra il campione e la soglia finale
-%             tStop=dSogliaSwitch2/abs(u(L-1)); % tempo di reazione per ingresso nullo
-%         end
-%         intervallo=intervallo+1;
-%         disp(['Commutazione all''istante ',num2str((L-1)*Tc+t_in),'; passaggio all''intervallo (superiore) ',num2str(intervallo)])
-%     end
-% 
-%     if and(x(L)^2+y(L)^2>=soglia(intervallo)^2, not(finito))
-%         intervallo=intervallo-1;
-%         disp(['L = ',num2str(L),'; passaggio all''intervallo (inferiore) ',num2str(intervallo)])
-%     end
-% 
-%     t_fin=(Ntot-N+(L-1))*Tc;
-%     indice_fin=(Ntot-N+(L-1)+1);
-%     disp(['Segmento considerato da t_in = ',num2str(t_in),' a t_fin = ',num2str(t_fin)])
-% 
-%     % Aggiorno i vettori di stato e dell'ingresso
-% 
-%     % segmento dello stato riferito all'intervallo, oltre lo stato iniziale
-%     % già contenuto nel precedente segmento come stato finale
-%     int_x=x(2:L);
-%     int_y=y(2:L);
-%     int_theta=theta(2:L);
-% 
-%     % concatenazione dallo stato iniziale
-%     nuovo_xtot=[xtot,int_x];
-%     nuovo_ytot=[ytot,int_y];
-%     nuovo_thetatot=[thetatot,int_theta];
-% 
-%     % segmenti degli ingressi riferiti all'intervallo
-%     int_u1=u(1:L-1);
-%     int_u2=u(N+1:N+L-1);
-% 
-%     % cancatenazione dell'ingresso dall'inizio
-%     nuovo_u1tot=[u1tot,int_u1];
-%     nuovo_u2tot=[u2tot,int_u2];
-% 
-%     % memorizzazione evoluzione fino alla fine, per confronto successivo.
-%     xfull(segmento,:)=[vettzeri,x]; % estrae la riga segmento dalla matrice
-%     yfull(segmento,:)=[vettzeri,y];
-%     thetafull(segmento,:)=[vettzeri,theta];
-% 
-%     % ingresso esteso a tutto l'intervallo
-%     u1full(segmento,:)=[vettzeri,u(1:N)];
-%     u2full(segmento,:)=[vettzeri,u(N+1:2*N)];
-% 
-%     % aggiorno tutto per ricominciare il ciclo
-%     % stato
-%     xtot=nuovo_xtot;
-%     ytot=nuovo_ytot;
-%     thetatot=nuovo_thetatot;
-%     % ingresso
-%     u1tot=nuovo_u1tot;
-%     u2tot=nuovo_u2tot;
-% 
-%     % condizione iniziale
-%     x0=xtot(length(xtot));
-%     y0=ytot(length(ytot));
-%     theta0=thetatot(length(thetatot));
-% 
-%     % campioni rimanenti
-%     N=N-(L-1);
-%     % Zeri iniziali per le variabili *full al prossimo passo, se serve (!)
-%     % Devo finire sempre con vettzeri con Ntot+1 componenti
-%     vettzeri=[vettzeri,zeros(1,L-1)];
-% 
-% end
+simulationParams;
 
-% disp('-------------------------------------------------------------')
-% 
-% % Tabella riportante i risultati della simulazione
-% if istantecomm(1)~=0 && istantecomm(2)~=0
-%     j=1;
-%     while tempo(j)<=istantecomm(2)
-%         if xtot(j)^2+ytot(j)^2 >= soglia(2)^2
-%             Intervallo(j,1) = 1;
-%         else
-%             Intervallo(j,1) = 2;
-%         end
-%         Istante(j,1) = tempo(j);
-%         Ascissa(j,1) = xtot(j);
-%         Ordinata(j,1) = ytot(j);
-%         Radianti(j,1) = thetatot(j);
-%         k=floor(rad2deg(thetatot(j))/360); % floor arrotonda il rapporto all'intero inferiore
-%         Gradi(j,1) = rad2deg(thetatot(j))-k*360; % angolo equivalente in gradi
-%         v_lineare(j,1) = u1tot(j);
-%         v_angolare(j,1) = u2tot(j);
-%         j=j+1;
-%     end
-% 
-%     table(Istante,Intervallo,Ascissa,Ordinata,Radianti,Gradi,v_lineare,v_angolare)
-% end
-% 
-% disp('-------------------------------------------------------------')
-% if istantecomm(1)~=0
-%     fprintf('Istante di commutazione I1-->I2: %f s\n',istantecomm(1));
-%     fprintf('Istante di superamento della soglia: %f s\n', istantecomm(1)-tReazione);
-%     fprintf('Tempo di reazione: %f s\n',tReazione);
-%     fprintf('Distanza percorsa tra soglia e switch: %f m\n', dSogliaSwitch);
-% end
-if istantecomm(2)~=0
-%     fprintf('Tempo totale impiegato per raggiungere l''obiettivo: %f s\n',istantecomm(2)-tStop);
-%     fprintf('Durata esperimento: %f s\n',istantecomm(2));
-%     fprintf('-------------------------------------------------------------\n');
+%% Check starting pose and interval with threshold
 
-    close all
-    figure(1), plot(tempo,xtot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('x_{1}(t) finale')
-    figure(2), plot(tempo,ytot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('x_{2}(t) finale')
-    figure(3), plot(tempo,thetatot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('x_{3}(t) finale')
-    figure(4), plot(tempo(1:Ntot),u1tot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{1}(t)'), title('u_{1}(t) finale')
-    figure(5), plot(tempo(1:Ntot),u2tot,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('u_{2}(t) finale')
+% Initial interval (normal domain with respect to x axis)
 
-    figure(6), plot(tempo,xfull,'linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('componenti x_{1}(t)')
-    legend ('intervallo 1','intervallo 2','ingresso nullo')
-    figure(7), plot(tempo,yfull,'linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('componenti x_{2}(t)')
-    legend ('intervallo 1','intervallo 2','ingresso nullo')
-    figure(8), plot(tempo,thetafull,'linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('componenti x_{3}(t)')
-    legend ('intervallo 1','intervallo 2','ingresso nullo')
-    figure(9), plot(tempo(1:Ntot),u1full,'linewidth',1), grid on,  xlabel('t'), ylabel('u_{1}(t)'), title('componenti u_{1}(t)')
-    legend ('intervallo 1','intervallo 2','ingresso nullo')
-    figure(10), plot(tempo(1:Ntot),u2full,'linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('componenti u_{2}(t)')
-    legend ('intervallo 1','intervallo 2','ingresso nullo')
+% If the device is in interval 2 (between the two circumferences - close to the goal)
+if x0^2+y0^2<threshold(2)^2 && x0^2+y0^2>=threshold(3)^2
+    interval=2;
+% If it is in the interval 3 (goal pose)
+elseif x0^2+y0^2<threshold(3)^2
+    interval=3;
+else 
+    interval=1;
+end
 
-    % Plot della traiettoria
-    figure(11),plot(xtot,ytot,'k --','linewidth',1),...
-        axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('traiettoria ottimizzata')
-    hold on
-    % Plot della soglia
-    n=0:0.01:2*pi;
-    plot(soglia(2)*cos(n), soglia(2)*sin(n),'r -','linewidth',2)
-    hold on
-    % Plot dell'orientazione per ogni campione
-% %     lunghezza = input('Lunghezza frecce orientazione (default 1 m): ');
-% %     if isempty(lunghezza)
-%         lunghezza = d; % diminuire o aumentare per regolare la lunghezza delle frecce nel grafico
-%     %end
-%     rho=lunghezza*ones(1,length(thetatot));
-%     [a,b] = pol2cart(thetatot,rho);
-%     quiver(xtot,ytot,a, b,0,'r','linewidth',1)
-
-    for i = 1:length(xtot)
-        plot_unicycle(xtot(i),ytot(i),thetatot(i),wheelBase,wheelWidth,wheelDiam,bodyDiam,radCaster)
-    end
-    hold on
-    legend ('traiettoria','soglia')
-    hold off
-
-    % Plot confronto traiettorie per ogni intervallo
-    figure(12),plot(xfull(1,:),yfull(1,:), '-- o','linewidth',1),...
-        axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('confronto traiettorie')
-    hold on
-    plot(xtot,ytot, 'k -- o','linewidth',1)
-    hold on
-    legend ('traiettoria non ottimizzata','traiettoria ottimizzata')
-
-    hold off
-
-    disp('FINE.')
+if interval==1
+    fprintf('The device is initially located in I1.\n\n');
+elseif interval==2
+    fprintf('The device is initially located in I2.\n\n');
 else
-    fprintf('Tempo insufficiente per raggiungere l''obiettivo.\nAumentare durata esperimento.\nFINE.');
+    fprintf('The device is already in the desired position.\n');
+    fprintf('No optimization needed.\n\n');
+end
+
+%% Simulation time and initialization 
+
+% Default simulation parameters
+t_tot_user=10; % experiment duration in seconds
+
+% Simulation parameters changed by the user
+t_tot=input('Experiment duration in seconds [10 s]: ');
+if isempty(t_tot)
+    t_tot = t_tot_user;
+end
+
+n_samples_user = t_tot*2; % at least two samples per second
+
+N=n_samples_user;
+St=t_tot/n_samples_user; % sample time
+
+% Generation of the time axis
+time=0:St:t_tot; % N+1 elements
+
+% Unnecessary input of fmincon
+A=[];
+B=[];
+Aeq=[];
+Beq=[];
+
+% Initialization of state and input vectors
+x_opt=x0;
+y_opt=y0;
+theta_opt=theta0;
+u1_opt=[];
+u2_opt=[];
+
+completed=false; % flag
+
+% Preparation of vectors x y theta u1 and u2 referred to the entire time 
+% interval for comparison
+zero_vec=[];
+x_comp=[];
+y_comp=[];
+theta_comp=[];
+u1_comp=[];
+u2_comp=[];
+
+fprintf('\n\n');
+
+%% Main loop (FMINCON)
+
+timeInterval=0;
+switchingInstant=[0,0]; % vector containing the definitive switch instants
+
+while N>0
+    
+    disp('-------------------------------------------------------------')
+    timeInterval=timeInterval+1;
+    t_start=(n_samples_user-N)*St; % corresponds to time(Ntot-N + 1);
+    start_index=n_samples_user-N+1;
+    disp(['Starting analysis of time interval ',num2str(timeInterval),' from t_start = ',num2str(t_start),' to t_end = ',num2str(n_samples_user*St)])
+    disp(['N = ',num2str(N)])
+    disp(['Device in the interval I',num2str(interval)])
+    
+    % Initialization of the quantities dependent on N
+    % Definition of dimension and constraints on input for fmincon
+    one_vec=ones(1,N); % creates vector of unit values
+    u1_min=u1_lb*one_vec;
+    %if intervallo==1
+    %    U1min=U1inf(1)*vettore; 
+    %else
+    %    U1min=U1inf(2)*vettore;
+    %end
+    u1_max=u1_ub*one_vec;
+    u2_min=u2_lb*one_vec;
+    u2_max=u2_ub*one_vec;
+
+    LB=horzcat(u1_min,u2_min); % vector of size 2N
+    UB=horzcat(u1_max,u2_max);
+    U0=0.2*UB; % initial input not null but low enough
+    
+    % Current discontinuous term weight
+    W1=W1_var(interval);
+    W2=W2_var(interval);
+
+    disp(['Variable weight W1 equal to ',num2str(W1)])
+    disp(['Variable weight W2 equal to ',num2str(W2)])
+    
+    % Different operation for I1 and I2 and the one below the minimum threshold I3.
+    % For all it is necessary to find the input (fmincon), except for interval I3 
+    % with the input set to zero
+
+    %% Optimal control strategy
+
+    % Target : obtain optimal global variables x,y,theta,u
+
+    if interval<3 % if the device is in the intervals I1 or I2  
+        
+        % Call function fmincon
+        options = optimoptions('fmincon','Display','off',...
+            'ConstraintTolerance',1e-12,'StepTolerance',1e-10,'MaxFunctionEvaluations',1e10, ...
+            'OptimalityTolerance',1e-12);
+
+        [optim_input,cost,EF,optim_output,lambda]...
+            = fmincon('functional',U0,A,B,Aeq,Beq,LB,UB,[],options);
+    end
+    
+    if interval == 3 % calculate the evolution for null input
+        u_null=zeros(1,2*N);
+        zeroCost=functional(u_null);
+        completed=true;
+    end
+    
+    % For the current time interval, I find, if it exists, 
+    % the switching instant corresponding to the achievement of one of the threshold values. 
+    
+    % N input samples, N + 1 status samples, 
+    % with the first element equal to the initial status, therefore useless to verify
+    L=2;
+    
+   
+    while and(x(L)^2+y(L)^2>=threshold(interval+1)^2 ...  % while the device is in the interval ...
+            && x(L)^2+y(L)^2<threshold(interval)^2, L<=N) % length(x)=N+1
+        disp(['L = ',num2str(L),'; device still in interval ',num2str(interval)])
+        L=L+1; % iterate until you get to the end of the interval
+    end
+    
+    if L==N+1 % x(N+1)=x(N Tc)
+        disp('No (further) switching performed within the time')
+        completed=true;
+    end
+    
+    if and(x(L)^2+y(L)^2<threshold(interval+1)^2, not(completed))
+        if interval==1
+            switchingInstant(interval)=(L-1)*St+t_start;
+            % Calculation of reaction time between threshold and switch
+            dSwitch1=(x(L)^2+y(L)^2)^(1/2); % first sample position after the switch
+            dThresholdSwitch=threshold(2)-dSwitch1; % distance between the sample and the threshold
+            tReaction=dThresholdSwitch/abs(u(L-1)); % reaction time for the switch
+        end
+        if interval==2
+            switchingInstant(interval)=(L-1)*St+t_start;
+            % Calculation of total arrival time between threshold and switch
+            dSwitch2=(x(L)^2+y(L)^2)^(1/2); % first sample position after the switch
+            dSogliaSwitch2=threshold(3)-dSwitch2; % distance between the sample and the final threshold
+            tStop=dSogliaSwitch2/abs(u(L-1)); % reaction time for null input
+        end
+        interval=interval+1;
+        disp(['Switching on instant ',num2str((L-1)*St+t_start),'; switch to interval (upper) ',num2str(interval)])
+    end
+    
+    if and(x(L)^2+y(L)^2>=threshold(interval)^2, not(completed))
+        interval=interval-1;
+        disp(['L = ',num2str(L),'; switch to interval (lower) ',num2str(interval)])
+    end
+    
+    t_end=(n_samples_user-N+(L-1))*St;
+    end_index=(n_samples_user-N+(L-1)+1);
+    disp(['Time interval considered from t_start = ',num2str(t_start),' to t_end = ',num2str(t_end)])
+    
+    %% Update of state and input vectors
+    
+    % Subarray of the state referred to the interval, with the initial state 
+    % already contained in the previous subarray as the final state
+    x_temp=x(2:L);
+    y_temp=y(2:L);
+    theta_temp=theta(2:L);
+    
+    % Concatenation from the initial state
+    x_temp=[x_opt,x_temp];
+    y_temp=[y_opt,y_temp];
+    theta_temp=[theta_opt,theta_temp];
+    
+    % Subarray of the inputs referred to the interval
+    u1_temp=u(1:L-1);
+    u2_temp=u(N+1:N+L-1);
+    
+    % Concatenation of the input from the start
+    u1_temp=[u1_opt,u1_temp];
+    u2_temp=[u2_opt,u2_temp];
+    
+    % Evolution until the end, for comparison
+    x_comp(timeInterval,:)=[zero_vec,x]; % extracts the time interval row from the matrix
+    y_comp(timeInterval,:)=[zero_vec,y];
+    theta_comp(timeInterval,:)=[zero_vec,theta];
+        
+    % Input extended to the whole interval
+    u1_comp(timeInterval,:)=[zero_vec,u(1:N)];
+    u2_comp(timeInterval,:)=[zero_vec,u(N+1:2*N)];
+    
+    % Update the variables to repeat the loop
+
+    x_opt=x_temp;
+    y_opt=y_temp;
+    theta_opt=theta_temp;
+
+    u1_opt=u1_temp;
+    u2_opt=u2_temp;
+    
+    % New starting conditions
+    x0=x_opt(length(x_opt));
+    y0=y_opt(length(y_opt));
+    theta0=theta_opt(length(theta_opt));
+    
+    % Remaining samples
+    N=N-(L-1);
+    zero_vec=[zero_vec,zeros(1,L-1)];
+    
+end
+
+disp('-------------------------------------------------------------')
+
+%% Simulation results
+
+% Table with results
+if switchingInstant(1)~=0 && switchingInstant(2)~=0
+    j=1;
+    while time(j)<=switchingInstant(2)
+        if x_opt(j)^2+y_opt(j)^2 >= threshold(2)^2
+            Interval(j,1) = 1;
+        elseif x_opt(j)^2+y_opt(j)^2 <= threshold(3)^2
+            Interval(j,1) = 3;
+        else
+            Interval(j,1) = 2;
+        end
+        Time(j,1) = time(j);
+        X1(j,1) = x_opt(j);
+        X2(j,1) = y_opt(j);
+        Theta_Radians(j,1) = theta_opt(j);
+        k=floor(rad2deg(theta_opt(j))/360); % floor arrotonda il rapporto all'intero inferiore
+        Theta_Degrees(j,1) = rad2deg(theta_opt(j))-k*360; % angolo equivalente in gradi
+        V_Linear(j,1) = u1_opt(j);
+        V_Angular(j,1) = u2_opt(j);
+        j=j+1;
+    end
+    
+    table(Time,Interval,X1,X2,Theta_Radians,Theta_Degrees,v_linear,v_angular)
+end
+
+disp('-------------------------------------------------------------')
+if switchingInstant(1)~=0
+    fprintf('Switching instant I1-->I2: %f s\n',switchingInstant(1));
+    fprintf('Time of exceeding the threshold: %f s\n', switchingInstant(1)-tReaction);
+    fprintf('Reaction time: %f s\n',tReaction);
+    fprintf('Distance traveled between threshold and switch: %f m\n', dThresholdSwitch);
+end
+if switchingInstant(2)~=0
+    fprintf('Total time taken to reach the goal: %f s\n',switchingInstant(2)-tStop);
+    fprintf('Experiment duration: %f s\n',switchingInstant(2));
+    disp('END.')
+else
+    fprintf('Not enough time to reach the goal.\nIncrease experiment duration.\nEND.');
+end
+    fprintf('-------------------------------------------------------------\n');
+
+%% Plots and video
+
+prompt = 'Show plots Y/N [N]: ';
+plotsFlag = input(prompt,'s');
+if isempty(plotsFlag)
+    plotsFlag = 'N';
+end
+
+prompt = 'Create video: Y/N [N]: ';
+videoFlag = input(prompt,'s');
+if isempty(videoFlag)
+    videoFlag = 'N';
+end
+
+if or(plotsFlag == 'Y', plotsFlag == 'y')
+    plots;
+end
+
+if or(videoFlag == 'Y', videoFlag == 'y')
+    createVideo;
+    movefile('*mp4','videos');
 end
 
 

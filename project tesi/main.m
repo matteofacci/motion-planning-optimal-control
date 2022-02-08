@@ -39,8 +39,8 @@ theta0 = deg2rad(theta0Grad); % conversione in radianti
 fprintf('Orientazione iniziale in radianti: %f\n\n',theta0);
 
 % Vincoli sul controllo (limiti sulle velocita' linerare e angolare)
-%U1inf = 0;
-U1inf = -vmax;
+U1inf = 0;
+%U1inf = -vmax;
 %U1inf(1) = 0; % nell'intervallo 1 si muove solo con velocita' di avanzamento positiva
 %U1inf(2) = -vmax; % nell'intervallo 2 per posizionarsi si aggiunge la possibilità di fare retromarcia
 U1sup = vmax;
