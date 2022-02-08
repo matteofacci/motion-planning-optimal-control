@@ -29,10 +29,10 @@ u1vett=u(1:N);
 u2vett=u(N+1:2*N);
 
 % Discrete functional
-term1=K1*sum(x.^2); % each component of x is raised to a power and added
-term2=K2*sum(y.^2);
-term3=K3*sum((theta-theta1).^2); % error between current and final orientation
-term4=W1*sum(u1vett.^2);
-term5=W2*sum(u2vett.^2);
+sum1=K1*sum((x-x1).^2); % each component of x is raised to a power and added
+sum2=K2*sum((y-y1).^2);
+sum3=K3*sum((theta-theta1).^2); % error between current and final orientation
+sum4=W1*sum(u1vett.^2);
+sum5=W2*sum(u2vett.^2);
 
-Cost=St*(term1+term2+term3+term4+term5);
+Cost=St*(sum1+sum2+sum3+sum4+sum5);

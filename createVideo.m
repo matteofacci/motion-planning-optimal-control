@@ -39,7 +39,7 @@ while i<=length(robotInterp)
     plot_unicycle(robotInterp(i,2),robotInterp(i,3),robotInterp(i,4),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth);
     % Plot della threshold
     n=0:0.01:2*pi;
-    plot(threshold(2)*cos(n), threshold(2)*sin(n),'r -','linewidth',2)
+    plot(x1+threshold(2)*cos(n), y1 + threshold(2)*sin(n),'r -','linewidth',2)
 
     %legend({'position error'},'Location', 'Best','Orientation','horizontal')
 

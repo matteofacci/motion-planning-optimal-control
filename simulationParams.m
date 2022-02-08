@@ -16,7 +16,7 @@ d = wheelBase/2; % wheel drive shaft length [m]
 %% Control constraints (limits on linear and angular velocities)
 
 u1_lb = 0; % minimum linear velocity [m/s]
-%U1inf = -vmax; % minimum linear velocity [m/s]
+%u1_lb = -vmax; % minimum linear velocity [m/s]
 %U1inf(1) = 0; % in interval 1 the robot moves only with positive speed of advancement
 %U1inf(2) = -vmax; % in the interval 2 to position itself, the possibility of reversing is added
 u1_ub = vmax;
@@ -27,7 +27,7 @@ u2_ub = vmax/d; % maximum angular velocity [rad/s]
 
 % Calculate the threshold corresponding to the distance that separates the
 % device from the goal
-distance0=(x0^2+y0^2)^(1/2);
+distance0=sqrt((x1-x0)^2+(y1-y0)^2);
 fprintf('Distance from the goal: %f m\n', distance0);
 
 thresholdValue=6; % default value of the switching threshold 2 [m]
