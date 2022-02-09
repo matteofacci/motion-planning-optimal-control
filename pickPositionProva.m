@@ -1,37 +1,39 @@
-clear all
-close all
-clc
+% clear all
+% close all
+% clc
 
-% Add that folder plus all subfolders to the path.
-addpath(genpath('utilities'));
-
-
-% x0 = 0;
-% y0 = 0;
-% theta0 = deg2rad(30); %deg
-
-maxPoses = 2;
-returnToBase = 0;
-
-wheelBase = 0.65; % wheelbase
-wheelWidth = 0.1; % m
-wheelDiam = 0.483; % m
-bodyLength = wheelBase-2*wheelWidth;
-bodyWidth = 0.63;
-bodyDiam = 0.3485; % m
-
-
-f = figure(1);
-%plot_unicycle(x0,y0,theta0,wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth)
-abscissae = [-30,30];
-ordinates = [-30,30];
-xlim(abscissae)
-ylim(ordinates)
-grid on
-axis equal
-hold on
-position = pickPosition(f,maxPoses);
-hold off
+x = -1.9183
+mod(x,2*pi)
+% % Add that folder plus all subfolders to the path.
+% addpath(genpath('utilities'));
+% 
+% 
+% % x0 = 0;
+% % y0 = 0;
+% % theta0 = deg2rad(30); %deg
+% 
+% maxPoses = 2;
+% returnToBase = 0;
+% 
+% wheelBase = 0.65; % wheelbase
+% wheelWidth = 0.1; % m
+% wheelDiam = 0.483; % m
+% bodyLength = wheelBase-2*wheelWidth;
+% bodyWidth = 0.63;
+% bodyDiam = 0.3485; % m
+% 
+% 
+% f = figure(1);
+% %plot_unicycle(x0,y0,theta0,wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth)
+% abscissae = [-30,30];
+% ordinates = [-30,30];
+% xlim(abscissae)
+% ylim(ordinates)
+% grid on
+% axis equal
+% hold on
+% position = pickPosition(f,maxPoses);
+% hold off
 % R = [1,0,-position(2,1);0,1,-position(2,2);0,0,1];  % translation matrix
 % 
 % [numrows,numcols] = size(position);

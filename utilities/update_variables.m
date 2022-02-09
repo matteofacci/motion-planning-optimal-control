@@ -1,4 +1,4 @@
-function [x,y,theta,u,x0,y0,theta0,x_opt,y_opt,theta_opt,u1_opt,u2_opt,x_comp,y_comp,theta_comp,u1_comp,u2_comp] = update_variables(timeInterval,N,L,x,y,theta,u,x_opt,y_opt,theta_opt,u1_opt,u2_opt,zero_vec,x_comp,y_comp,theta_comp,u1_comp,u2_comp);
+function [x,y,theta,u,x0,y0,theta0,x_opt,y_opt,theta_opt,u1_opt,u2_opt,x_comp,y_comp,theta_comp,u1_comp,u2_comp] = update_variables(timeInterval,N,L,x,y,theta,u,x_opt,y_opt,theta_opt,u1_opt,u2_opt,zero_vec,x_comp,y_comp,theta_comp,u1_comp,u2_comp)
 
 % Subarray of the state referred to the interval, with the initial state
 % already contained in the previous subarray as the final state

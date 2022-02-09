@@ -6,7 +6,7 @@ global K1 K2 K3 % weights of the functional
 wheelBase = 0.65; % [m]
 wheelWidth = 0.1; % [m]
 wheelDiam = 0.483; % [m]
-bodyLength = wheelBase-wheelWidth; % [m]
+bodyLength = wheelBase-2*wheelWidth; % [m]
 bodyWidth = 0.63; % [m]
 bodyDiam = 0.3485; % [m]
 
@@ -54,3 +54,17 @@ W2_var(4) = 0;
 K1 = 10000; % weight of term x
 K2 = 10000; % weight of term y
 K3 = 10000; % weight of term theta
+
+%% fmincon options
+
+% % Increased performance
+% options = optimoptions('fmincon','Display','off',...
+%     'ConstraintTolerance',1e-12,'StepTolerance',1e-10,'MaxFunctionEvaluations',1e10, ...
+%     'OptimalityTolerance',1e-12);
+
+% Standard performance 
+options = optimoptions('fmincon','Display','off');
+
+% % Reset options if needed
+% options_reset = resetoptions(options,'ConstraintTolerance','StepTolerance',...
+%     'MaxFunctionEvaluations','OptimalityTolerance')

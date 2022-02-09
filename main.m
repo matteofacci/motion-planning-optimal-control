@@ -16,7 +16,7 @@ addpath(genpath('videos'));
 
 %% Starting and ending poses by user input
 
-PICK_POSITION = 1;
+PICK_POSITION = 0;
 
 if PICK_POSITION == 0
     % Starting conditions
@@ -26,7 +26,7 @@ if PICK_POSITION == 0
 
     % Device starting orientation input (in degrees)
     theta0_grad = value_from_user('Initial orientation in degrees [0 °]: ',0);
-    theta0 = deg2rad(theta0_grad); % conversion to radians
+    theta0 = mod(deg2rad(theta0_grad),2*pi); % conversion to radians
 
     % Device abscissa and ordinate input (in meters)
     x1 = value_from_user('Final abscissa in meters [0 m]: ',0);
@@ -34,14 +34,15 @@ if PICK_POSITION == 0
 
     % Device final orientation input (in degrees)
     theta1_grad = value_from_user('Final orientation in degrees [0 °]: ',0);
-    theta1 = deg2rad(theta1_grad); % conversion to radians
+    theta1 = mod(deg2rad(theta1_grad),2*pi); % conversion to radians
+
 else
     maxPoses = 2;
 
     f = figure(1);
     %plot_unicycle(x0,y0,theta0,wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth)
-    abscissae = [-10,10];
-    ordinates = [-10,10];
+    abscissae = [0,20];
+    ordinates = [0,20];
     xlim(abscissae)
     ylim(ordinates)
     grid on
@@ -57,12 +58,13 @@ else
 
     % Device starting orientation input (in degrees)
     theta0_grad = value_from_user('Initial orientation in degrees [0 °]: ',0);
-    theta0 = deg2rad(theta0_grad); % conversion to radians
+    theta0 = mod(deg2rad(theta0_grad),2*pi); % conversion to radians
 %     % Device final orientation input (in degrees)
 %     theta1_grad = value_from_user('Final orientation in degrees [0 °]: ',0);
 %     theta1 = deg2rad(theta1_grad); % conversion to radians
 
     theta1 = computeTheta(x0,y0,x1,y1);
+    %theta1 = mod(theta1,2*pi);
 end
 
 
@@ -138,6 +140,7 @@ u1_comp=[];
 u2_comp=[];
 
 fprintf('\n\n');
+disp('START EXPERIMENT');
 
 %% Main loop (FMINCON)
 
@@ -174,10 +177,6 @@ while N>0
     if interval<3 % if the device is in the intervals I1 or I2
 
         % Call function fmincon
-        options = optimoptions('fmincon','Display','off',...
-            'ConstraintTolerance',1e-12,'StepTolerance',1e-10,'MaxFunctionEvaluations',1e10, ...
-            'OptimalityTolerance',1e-12);
-
         [optim_input,cost,EF,optim_output,lambda]...
             = fmincon('functional',U0,A,B,Aeq,Beq,LB,UB,[],options);
     end

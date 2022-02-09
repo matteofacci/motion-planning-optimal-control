@@ -13,7 +13,7 @@ draw_rectangle([x,y],bodyWidth,bodyLength,rad2deg(theta),bodyRGB);
 draw_rectangle([xR,yR],wheelWidth,wheelDiam,rad2deg(theta),wheelRGB)
 hold on
 draw_rectangle([xL,yL],wheelWidth,wheelDiam,rad2deg(theta),wheelRGB)
-plot([xR xL], [yR yL],'LineWidth',2,'Color','r')
+%plot([xR xL], [yR yL],'LineWidth',2,'Color','r')
 %scatter([xR xL], [yR yL],50,'filled','MarkerEdgeColor','r','MarkerFaceColor','r')
 %plotCircle(x,y,bodyDiam/2,bodyRGB,1);
 %scatter(xCaster, yCaster,1000,'filled','MarkerEdgeColor',wheelRGB,'MarkerFaceColor',wheelRGB)
