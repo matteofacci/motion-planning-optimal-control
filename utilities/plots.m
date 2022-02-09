@@ -1,28 +1,28 @@
 
 
-figure, plot(time,x_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('x_{1}(t) finale')
-figure, plot(time,y_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('x_{2}(t) finale')
-figure, plot(time,theta_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('x_{3}(t) finale')
-figure, plot(time(1:n_samples_user),u1_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{1}(t)'), title('u_{1}(t) finale')
-figure, plot(time(1:n_samples_user),u2_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('u_{2}(t) finale')
+figure, plot(time{end},x_opt{end},'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('x_{1}(t) finale')
+figure, plot(time{end},y_opt{end},'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('x_{2}(t) finale')
+figure, plot(time{end},theta_opt{end},'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('x_{3}(t) finale')
+figure, plot(time{end}(1:n_samples_user),u1_opt{end},'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{1}(t)'), title('u_{1}(t) finale')
+figure, plot(time{end}(1:n_samples_user),u2_opt{end},'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('u_{2}(t) finale')
 
-figure, plot(time,x_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('componenti x_{1}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure, plot(time,y_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('componenti x_{2}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure, plot(time,theta_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('componenti x_{3}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure, plot(time(1:n_samples_user),u1_comp,'linewidth',1), grid on,  xlabel('t'), ylabel('u_{1}(t)'), title('componenti u_{1}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure, plot(time(1:n_samples_user),u2_comp,'linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('componenti u_{2}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time,x_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('componenti x_{1}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time,y_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('componenti x_{2}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time,theta_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('componenti x_{3}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time(1:n_samples_user),u1_comp,'linewidth',1), grid on,  xlabel('t'), ylabel('u_{1}(t)'), title('componenti u_{1}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time(1:n_samples_user),u2_comp,'linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('componenti u_{2}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
 
 % Plot della traiettoria
-figure,plot(x_opt,y_opt,'k --','linewidth',1),...
+figure,plot(x_opt{end},y_opt{end},'k --','linewidth',1),...
     axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('traiettoria ottimizzata')
 hold on
-for i = 1:length(x_opt)
-    plot_unicycle(x_opt(i),y_opt(i),theta_opt(i),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth)
+for i = 1:length(x_opt{end})
+    plot_unicycle(x_opt{end}(i),y_opt{end}(i),theta_opt{end}(i),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth)
 end
 % Plot della threshold
 n=0:0.01:2*pi; 
@@ -41,10 +41,10 @@ plot(x1 + threshold(2)*cos(n),y1 + threshold(2)*sin(n),'r -','linewidth',2)
 hold off
 
 % Plot confronto traiettorie per ogni intervallo
-figure,plot(x_comp(1,:),y_comp(1,:), '-- o','linewidth',1),...
+figure,plot(x_comp{end}(1,:),y_comp{end}(1,:), '-- o','linewidth',1),...
     axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('confronto traiettorie')
 hold on
-plot(x_opt,y_opt, 'k -- o','linewidth',1)
+plot(x_opt{end},y_opt{end}, 'k -- o','linewidth',1)
 hold on
 legend ('traiettoria non ottimizzata','traiettoria ottimizzata')
 
