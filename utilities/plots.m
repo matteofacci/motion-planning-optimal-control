@@ -6,16 +6,16 @@ figure, plot(time,theta_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('
 figure, plot(time(1:n_samples_user),u1_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{1}(t)'), title('u_{1}(t) finale')
 figure, plot(time(1:n_samples_user),u2_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('u_{2}(t) finale')
 
-figure, plot(time,x_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('componenti x_{1}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure, plot(time,y_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('componenti x_{2}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure, plot(time,theta_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('componenti x_{3}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure, plot(time(1:n_samples_user),u1_comp,'linewidth',1), grid on,  xlabel('t'), ylabel('u_{1}(t)'), title('componenti u_{1}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
-figure, plot(time(1:n_samples_user),u2_comp,'linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('componenti u_{2}(t)')
-legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time,x_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('componenti x_{1}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time,y_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('componenti x_{2}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time,theta_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('componenti x_{3}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time(1:n_samples_user),u1_comp,'linewidth',1), grid on,  xlabel('t'), ylabel('u_{1}(t)'), title('componenti u_{1}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
+% figure, plot(time(1:n_samples_user),u2_comp,'linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('componenti u_{2}(t)')
+% legend ('intervallo 1','intervallo 2','ingresso nullo')
 
 % Plot della traiettoria
 figure,plot(x_opt,y_opt,'k --','linewidth',1),...
@@ -40,12 +40,12 @@ plot(x1 + threshold(2)*cos(n),y1 + threshold(2)*sin(n),'r -','linewidth',2)
 % legend ('traiettoria','threshold','orientazione')
 hold off
 
-% Plot confronto traiettorie per ogni intervallo
-figure,plot(x_comp(1,:),y_comp(1,:), '-- o','linewidth',1),...
-    axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('confronto traiettorie')
-hold on
-plot(x_opt,y_opt, 'k -- o','linewidth',1)
-hold on
-legend ('traiettoria non ottimizzata','traiettoria ottimizzata')
-
-hold off
+% % Plot confronto traiettorie per ogni intervallo
+% figure,plot(x_comp(1,:),y_comp(1,:), '-- o','linewidth',1),...
+%     axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'), title('confronto traiettorie')
+% hold on
+% plot(x_opt,y_opt, 'k -- o','linewidth',1)
+% hold on
+% legend ('traiettoria non ottimizzata','traiettoria ottimizzata')
+% 
+% hold off
