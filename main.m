@@ -88,12 +88,12 @@ else
 end
 
 if interval==1
-    fprintf('The device is initially located in I1.\n\n');
+    fprintf('The device is initially located in I1.');
 elseif interval==2
-    fprintf('The device is initially located in I2.\n\n');
+    fprintf('The device is initially located in I2.');
 else
-    fprintf('The device is already in the desired position.\n');
-    fprintf('No optimization needed.\n\n');
+    fprintf('The device is already in the desired position.');
+    fprintf('No optimization needed.');
 end
 
 %% Simulation time and initialization
@@ -256,7 +256,6 @@ end
 if switchingInstant(2)~=0
     fprintf('Total time taken to reach the goal: %f s\n',switchingInstant(2)-tStop);
     fprintf('Experiment duration: %f s\n',switchingInstant(2));
-    disp('END.')
 end
 if switchingInstant(1)~=0 && switchingInstant(2)==0
     fprintf('Not enough time to reach the goal.\nIncrease experiment duration.\nEND.\n');
