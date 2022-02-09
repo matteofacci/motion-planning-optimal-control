@@ -15,7 +15,7 @@ while true && i <= maxPoses
 
     scatter(viaPoint(i,1),viaPoint(i,2),50,'filled','MarkerEdgeColor','r','MarkerFaceColor','r');
     labels(i) = "Point " + num2str(i);
-    labelpoints(viaPoint(i,1),viaPoint(i,2),labels(i))
+    labelpoints(viaPoint(i,1),viaPoint(i,2),labels(i),'buffer',0.5);
     hold on
     i=i+1;
 

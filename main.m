@@ -38,9 +38,9 @@ if PICK_POSITION == 0
 
 else
     maxPoses = 2;
+    returnToBase = 0;
 
     f = figure(1);
-    %plot_unicycle(x0,y0,theta0,wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth)
     abscissae = [0,20];
     ordinates = [0,20];
     xlim(abscissae)
@@ -48,27 +48,40 @@ else
     grid on
     axis equal
     hold on
-    position = pickPosition(f,maxPoses);
-    hold off
 
-    x0 = position(1,1);
-    y0 = position(1,2);
-    x1 = position(2,1);
-    y1 = position(2,2);
+    viaPoint = pickPosition(f,maxPoses);
 
     % Device starting orientation input (in degrees)
     %theta0_grad = value_from_user('Initial orientation in degrees [0 °]: ',0);
     theta0_grad = 0;
     theta0 = mod(deg2rad(theta0_grad),2*pi); % conversion to radians
-    %     % Device final orientation input (in degrees)
-    %     theta1_grad = value_from_user('Final orientation in degrees [0 °]: ',0);
-    %     theta1 = deg2rad(theta1_grad); % conversion to radians
+    %     %     % Device final orientation input (in degrees)
+    %     %     theta1_grad = value_from_user('Final orientation in degrees [0 °]: ',0);
+    %     %     theta1 = deg2rad(theta1_grad); % conversion to radians
+    %
+    %     theta1 = computeTheta(x0,y0,x1,y1);
+    %     theta1 = mod(theta1,2*pi);
+    % end
 
-    theta1 = computeTheta(x0,y0,x1,y1);
-    theta1 = mod(theta1,2*pi);
+    viaPoint(end+1,:) = viaPoint(1,:);
+    viaPoint(1,3)=theta0;
+    for i = 2 : length(viaPoint(:,1))-1
+        viaPoint(i,3) = computeTheta(viaPoint(i+1,1),viaPoint(i+1,2),viaPoint(i,1),viaPoint(i,2));
+    end
+
+    if returnToBase == 0
+        viaPoint(end,:) = [];
+    end
+
+    [maxPoses,numCols] = size(viaPoint);
+
+    x0 = viaPoint(1,1);
+    y0 = viaPoint(1,2);
+    x1 = viaPoint(2,1);
+    y1 = viaPoint(2,2);
+    theta1 = viaPoint(2,3);
+
 end
-
-pause(0.5);
 
 q_picked = [x0,y0,theta0;x1,y1,theta1];
 
@@ -76,6 +89,16 @@ q_picked = [x0,y0,theta0;x1,y1,theta1];
 %% Simulation parameters
 
 simulationParams;
+
+grid on
+axis equal
+for i = 1:maxPoses
+    plot_unicycle(viaPoint(i,1),viaPoint(i,2),viaPoint(i,3),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth)
+end
+
+hold off
+
+pause(0.5);
 
 %% Check starting pose and interval with threshold
 
@@ -89,10 +112,10 @@ theta_final = q_picked(2,3);
 
 % Initial interval
 % If the device is in interval 2 (between the two circumferences - close to the goal)
-if (x1-x0)^2+(y1-y0)^2<threshold(2)^2 && (x1-x0)^2+(y1-y0)^2>=threshold(3)^2
+if (x_final-x_start)^2+(y_final-y_start)^2<threshold(2)^2 && (x_final-x_start)^2+(y_final-y_start)^2>=threshold(3)^2
     interval=2;
     % If it is in the interval 3 (goal pose)
-elseif (x1-x0)^2+(y1-y0)^2<threshold(3)^2
+elseif (x_final-x_start)^2+(y_final-y_start)^2<threshold(3)^2
     interval=3;
 else
     interval=1;
@@ -112,11 +135,11 @@ end
 timeInterval=0;
 switchingInstant=[0,0]; % vector containing the definitive switch instants
 t_tot_user = 0;
-
+                             
 fprintf('\n');
 disp('START EXPERIMENT');
 
-while switchingInstant(2) == 0
+while switchingInstant(2) == 0 && interval ~= 3
 
     x0 = x_start;
     y0 = y_start;
@@ -126,13 +149,8 @@ while switchingInstant(2) == 0
     theta1 = theta_final;
 
     % Default simulation parameters
-    %t_tot_user=10; % experiment duration in seconds
     t_tot_user = t_tot_user+1;
-    % Simulation parameters changed by the user
-    %     t_tot=input('Experiment duration in seconds [10 s]: ');
-    %     if isempty(t_tot)
-    %         t_tot = t_tot_user;
-    %     end
+
     t_tot = t_tot_user;
     n_samples_user = t_tot*2; % at least two samples per second
 
@@ -269,10 +287,10 @@ if switchingInstant(2)~=0
     fprintf('Total time taken to reach the goal: %f s\n',switchingInstant(2)-tStop);
     fprintf('Experiment duration: %f s\n',switchingInstant(2));
 end
-if switchingInstant(1)==0 || switchingInstant(2)==0
-    fprintf('Not enough time to reach the goal.\nIncrease experiment duration.\n');
-    %break
-end
+% if switchingInstant(1)==0 || switchingInstant(2)==0
+%     fprintf('Not enough time to reach the goal.\nIncrease experiment duration.\n');
+%     %break
+% end
 fprintf('-------------------------------------------------------------\n');
 
 
