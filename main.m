@@ -14,9 +14,12 @@ global x y theta u % state and control variables
 addpath(genpath('utilities'));
 addpath(genpath('videos'));
 
-%% Starting and ending poses by user input
-
 PICK_POSITION = 1;
+maxPoses = 10;
+returnToBase = 1;
+
+
+%% Starting and ending poses by user input
 
 if PICK_POSITION == 0
     % Starting conditions
@@ -37,19 +40,17 @@ if PICK_POSITION == 0
     theta1 = mod(deg2rad(theta1_grad),2*pi); % conversion to radians
 
 else
-    maxPoses = 3;
-    returnToBase = 1;
 
     f = figure(1);
-    abscissae = [0,20];
-    ordinates = [0,20];
+    abscissae = [-20,20];
+    ordinates = [-20,20];
     xlim(abscissae)
     ylim(ordinates)
     grid on
     axis equal
     hold on
 
-    viaPoint = pickPosition(f,maxPoses);
+    viaPoint = pickPosition(f,maxPoses,'r',"Point");
 
     % Device starting orientation input (in degrees)
     theta0_grad = 0;

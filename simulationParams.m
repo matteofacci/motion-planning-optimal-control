@@ -1,6 +1,7 @@
 global vmax d % model parameters
 global K1 K2 K3 % weights of the functional
 
+
 %% Robot physical parameters
 
 wheelBase = 0.65; % [m]
@@ -54,6 +55,7 @@ K3 = 10000; % weight of term theta
 % Standard performance 
 options = optimoptions('fmincon','Display','off');
 
+%%
 % % Reset options if needed
 % options_reset = resetoptions(options,'ConstraintTolerance','StepTolerance',...
 %     'MaxFunctionEvaluations','OptimalityTolerance')
