@@ -25,18 +25,7 @@ u2_ub = vmax/d; % maximum angular velocity [rad/s]
 
 %% Threshold
 
-% Calculate the threshold corresponding to the distance that separates the
-% device from the goal
-distance0=sqrt((x1-x0)^2+(y1-y0)^2);
-fprintf('Distance from the goal: %f m\n', distance0);
-
 thresholdValue=6; % default value of the switching threshold 2 [m]
-
-threshold(1)=1000*distance0; % for simplicity, increase the threshold of the I1 interval as desired
-% Predetermined thresholds based on the problem
-threshold(2)=thresholdValue; % functional switch
-threshold(3)=0.5; % value of the switching threshold 3 (for u_null) [m]
-threshold(4)=0; % additional threshold
 
 %% Weights
 

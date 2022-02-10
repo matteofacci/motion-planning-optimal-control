@@ -7,8 +7,8 @@ figh = figureFullScreen(100);
 %     "   -   Distance traveled [m]: " + num2str(distanceTraveled) + " ]";
 
 fps = 25;
-videoLength = t_end; %[s]
-totCameraPic = fps*videoLength;
+videoLength = time(end); %[s]
+totCameraPic = ceil(fps*videoLength);
 
 % for j = 1:length(theta_opt)
 %     k=floor(rad2deg(theta_opt(j))/360); % floor arrotonda il rapporto all'intero inferiore
@@ -18,14 +18,16 @@ totCameraPic = fps*videoLength;
 % robot = [tempo',x_opt',y_opt',deg2rad(degrees')];
 % robotInterp = interparc(totCameraPic,robot(:,1),robot(:,2),robot(:,3),robot(:,4),'linear');
 
-robot = [time',x_opt',y_opt'];
+robot = [time,x_opt,y_opt];
 robotInterp = interparc(totCameraPic,robot(:,1),robot(:,2),robot(:,3),'linear');
 
 for i = 1 : length(robotInterp)
-index_of_last  = find( robot(:,1) <= robotInterp(i,1), 1, 'last');
-robotInterp(i,4) = theta_opt(index_of_last);
+    index_of_last  = find( robot(:,1) <= robotInterp(i,1), 1, 'last');
+    robotInterp(i,4) = theta_opt(index_of_last);
 end
-    
+
+robotInterp(end,4) = theta_opt(end);
+
 i=1;
 while i<=length(robotInterp)
 
@@ -36,11 +38,19 @@ while i<=length(robotInterp)
 
     axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'),
     hold on
+    for k = 2:maxPoses
+        plotCircle(viaPoint(k,1),viaPoint(k,2),threshold(2),'r',2);
+    end
+    %     abscissae = [-20,20];
+    %     ordinates = [-20,20];
+    %     xlim(abscissae)
+    %     ylim(ordinates)
     plot_unicycle(robotInterp(i,2),robotInterp(i,3),robotInterp(i,4),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth);
     % Plot della threshold
-    n=0:0.01:2*pi;
-    plot(x1+threshold(2)*cos(n), y1 + threshold(2)*sin(n),'r -','linewidth',2)
-
+    %     for i = 2:length(viaPoint)
+    %         n=0:0.01:2*pi;
+    %         plot(viaPoint(i,1)+threshold(2)*cos(n), viaPoint(i,2) + threshold(2)*sin(n),'r -','linewidth',2)
+    %     end
     %legend({'position error'},'Location', 'Best','Orientation','horizontal')
 
     % force Matlab to draw the image at this point (use drawnow or pause)

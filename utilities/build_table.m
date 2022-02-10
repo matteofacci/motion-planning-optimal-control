@@ -11,8 +11,8 @@ if switchingInstant(1)~=0 || switchingInstant(2)~=0
             Interval(j,1) = 2;
         end
         Time(j,1) = time(j);
-        X1(j,1) = x_opt(j);
-        X2(j,1) = y_opt(j);
+        X(j,1) = x_opt(j);
+        Y(j,1) = y_opt(j);
         Theta_Radians(j,1) = theta_opt(j);
         k=floor(rad2deg(theta_opt(j))/360); % floor arrotonda il rapporto all'intero inferiore
         Theta_Degrees(j,1) = rad2deg(theta_opt(j))-k*360; % angolo equivalente in gradi
@@ -21,7 +21,7 @@ if switchingInstant(1)~=0 || switchingInstant(2)~=0
         j=j+1;
     end
     
-    T = table(Time,Interval,X1,X2,Theta_Radians,Theta_Degrees,V_Linear,V_Angular);
+    T = table(Time,Interval,X,Y,Theta_Radians,Theta_Degrees,V_Linear,V_Angular);
 end
 
 end

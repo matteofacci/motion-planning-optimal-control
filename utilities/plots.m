@@ -3,8 +3,8 @@
 figure, plot(time,x_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('x_{1}(t) finale')
 figure, plot(time,y_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('x_{2}(t) finale')
 figure, plot(time,theta_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{3}(t)'), title('x_{3}(t) finale')
-figure, plot(time(1:n_samples_user),u1_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{1}(t)'), title('u_{1}(t) finale')
-figure, plot(time(1:n_samples_user),u2_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('u_{2}(t) finale')
+figure, plot(time,u1_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{1}(t)'), title('u_{1}(t) finale')
+figure, plot(time,u2_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('u_{2}(t)'), title('u_{2}(t) finale')
 
 % figure, plot(time,x_comp,'linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('componenti x_{1}(t)')
 % legend ('intervallo 1','intervallo 2','ingresso nullo')
@@ -25,8 +25,8 @@ for i = 1:length(x_opt)
     plot_unicycle(x_opt(i),y_opt(i),theta_opt(i),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth)
 end
 % Plot della threshold
-n=0:0.01:2*pi; 
-plot(x1 + threshold(2)*cos(n),y1 + threshold(2)*sin(n),'r -','linewidth',2) 
+% n=0:0.01:2*pi; 
+% plot(x1 + threshold(2)*cos(n),y1 + threshold(2)*sin(n),'r -','linewidth',2) 
 % hold on
 % % Plot dell'orientazione per ogni campione
 % lunghezza = input('Lunghezza frecce orientazione (default 1 m): ');
