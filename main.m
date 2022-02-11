@@ -42,8 +42,8 @@ if PICK_POSITION == 0
 else
 
     f = figure(1);
-    abscissae = [-20,20];
-    ordinates = [-20,20];
+    abscissae = [0,25];
+    ordinates = [0,25];
     xlim(abscissae)
     ylim(ordinates)
     grid on
@@ -129,15 +129,6 @@ for seq = 1:maxPoses-1
         interval=1;
     end
 
-    % if interval==1
-    %     fprintf('The device is initially located in I1.\n');
-    % elseif interval==2
-    %     fprintf('The device is initially located in I2.\n');
-    % else
-    %     fprintf('The device is already in the desired position.\n');
-    %     fprintf('No optimization needed.\n');
-    % end
-
     %% Simulation time and initialization
 
     timeInterval=0;
@@ -187,18 +178,12 @@ for seq = 1:maxPoses-1
             timeInterval=timeInterval+1;
             t_start=(n_samples_user-N)*St; % corresponds to time(Ntot-N + 1);
             start_index=n_samples_user-N+1;
-            %disp(['Starting analysis of time interval ',num2str(timeInterval),' from t_start = ',num2str(t_start),' to t_end = ',num2str(n_samples_user*St)])
-            %disp(['N = ',num2str(N)])
-            %disp(['Device in the interval I',num2str(interval)])
 
             [LB,UB,U0] = input_bounds(N,u1_lb,u1_ub,u2_lb,u2_ub);
 
             % Current discontinuous term weight
             W1=W1_var(interval);
             W2=W2_var(interval);
-
-            %disp(['Variable weight W1 equal to ',num2str(W1)])
-            %disp(['Variable weight W2 equal to ',num2str(W2)])
 
             % Different operation for I1 and I2 and the one below the minimum threshold I3.
             % For all it is necessary to find the input (fmincon), except for interval I3
@@ -231,12 +216,10 @@ for seq = 1:maxPoses-1
 
             while and((x(L)-x1)^2+(y(L)-y1)^2>=threshold(interval+1)^2 ...  % while the device is in the interval ...
                     && (x(L)-x1)^2+(y(L)-y1)^2<threshold(interval)^2, L<=N) % length(x)=N+1
-                %disp(['L = ',num2str(L),'; device still in interval ',num2str(interval)])
                 L=L+1; % iterate until you get to the end of the interval
             end
 
             if L==N+1 % x(N+1)=x(N Tc)
-                %disp('No (further) switching performed within the time')
                 completed=true;
             end
 
@@ -256,17 +239,14 @@ for seq = 1:maxPoses-1
                     tStop=dSogliaSwitch2/abs(u(L-1)); % reaction time for null input
                 end
                 interval=interval+1;
-                %disp(['Switching on instant ',num2str((L-1)*St+t_start),'; switch to interval (upper) ',num2str(interval)])
             end
 
             if and((x(L)-x1)^2+(y(L)-y1)^2>=threshold(interval)^2, not(completed))
                 interval=interval-1;
-                %disp(['L = ',num2str(L),'; switch to interval (lower) ',num2str(interval)])
             end
 
             t_end=(n_samples_user-N+(L-1))*St;
             end_index=(n_samples_user-N+(L-1)+1);
-            %disp(['Time interval considered from t_start = ',num2str(t_start),' to t_end = ',num2str(t_end)])
 
             %% Update of state and input vectors
 
@@ -274,7 +254,6 @@ for seq = 1:maxPoses-1
 
             % Remaining samples
             N=N-(L-1);
-            %zero_vec=[zero_vec,zeros(1,L-1)];
         end
 
     end
@@ -284,6 +263,7 @@ for seq = 1:maxPoses-1
     %% Simulation results
 
     if switchingInstant(1)~=0
+        fprintf('Sequence %d\n', seq);
         fprintf('Switching instant I1-->I2: %f s\n',switchingInstant(1));
         fprintf('Time of exceeding the threshold: %f s\n', switchingInstant(1)-tReaction);
         fprintf('Reaction time: %f s\n',tReaction);
@@ -293,10 +273,7 @@ for seq = 1:maxPoses-1
         fprintf('Total time taken to reach the goal: %f s\n',switchingInstant(2)-tStop);
         fprintf('Experiment duration: %f s\n',switchingInstant(2));
     end
-    % if switchingInstant(1)==0 || switchingInstant(2)==0
-    %     fprintf('Not enough time to reach the goal.\nIncrease experiment duration.\n');
-    %     %break
-    % end
+
     fprintf('-------------------------------------------------------------\n');
 
 
@@ -309,7 +286,7 @@ for seq = 1:maxPoses-1
 
 end
 
-disp('END')
+%% Data manipulation
 
 [M_opt,T_opt] = access_data(Tab);
 
@@ -319,6 +296,14 @@ y_opt = M_opt(:,4);
 theta_opt = M_opt(:,5);
 u1_opt = M_opt(:,7);
 u2_opt = M_opt(:,8);
+interval_opt = M_opt(:,2);
+
+fprintf('-------------------------------------------------------------\n');
+fprintf('OPTIMAL RESULT\n');
+
+disp(T_opt);
+
+disp('END')
 
 %% Plots and video
 

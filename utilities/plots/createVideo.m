@@ -10,25 +10,21 @@ fps = 25;
 videoLength = time(end); %[s]
 totCameraPic = ceil(fps*videoLength);
 
-% for j = 1:length(theta_opt)
-%     k=floor(rad2deg(theta_opt(j))/360); % floor arrotonda il rapporto all'intero inferiore
-%     degrees(j) = rad2deg(theta_opt(j))-k*360; % angolo equivalente in gradi
-% end
-
-% robot = [tempo',x_opt',y_opt',deg2rad(degrees')];
-% robotInterp = interparc(totCameraPic,robot(:,1),robot(:,2),robot(:,3),robot(:,4),'linear');
-
 robot = [time,x_opt,y_opt];
 robotInterp = interparc(totCameraPic,robot(:,1),robot(:,2),robot(:,3),'linear');
 
 for i = 1 : length(robotInterp)
     index_of_last  = find( robot(:,1) <= robotInterp(i,1), 1, 'last');
     robotInterp(i,4) = theta_opt(index_of_last);
+    robotInterp(i,5) = interval_opt(index_of_last);
 end
-
+robotInterp(end,5) = interval_opt(end);
 robotInterp(end,4) = theta_opt(end);
 
 i=1;
+flag_threshold = 0;
+count_threshold = 1;
+
 while i<=length(robotInterp)
 
     % Wipe the slate clean so we are plotting with a blank figure
@@ -37,11 +33,28 @@ while i<=length(robotInterp)
     %sgtitle(txt)
 
     axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'),
+    abscissae = [min(viaPoint(:,1)-thresholdValue),max(viaPoint(:,1)+thresholdValue)];
+    ordinates = [min(viaPoint(:,2)-thresholdValue),max(viaPoint(:,2)+thresholdValue)];
+    xlim(abscissae)
+    ylim(ordinates)
     hold on
-    for k = 2:maxPoses
-        plotCircle(viaPoint(k,1),viaPoint(k,2),threshold(2),'r',2);
+
+    % Plot threshold
+    if robotInterp(i,5) >= 2 && flag_threshold == 0
+        count_threshold = count_threshold+1;
+        flag_threshold = 1;
+        plotCircle(viaPoint(count_threshold,1),viaPoint(count_threshold,2),threshold(2),'r',2);
+    elseif robotInterp(i,5) >= 2 && flag_threshold == 1
+        plotCircle(viaPoint(count_threshold,1),viaPoint(count_threshold,2),threshold(2),'r',2);
+    else
+        flag_threshold = 0;
     end
 
+    %     for k = 2:maxPoses
+    %         plotCircle(viaPoint(k,1),viaPoint(k,2),threshold(2),'r',2);
+    %     end
+
+    % Plot viapoints
     if returnToBase == 1
         limit = maxPoses-1;
     else
@@ -53,26 +66,15 @@ while i<=length(robotInterp)
         labelpoints(viaPoint(k,1),viaPoint(k,2),labels(k),'buffer',0.5);
     end
 
-    %scatter(obstacles(:,1),obstacles(:,2),50,'filled','MarkerEdgeColor','k','MarkerFaceColor','k');
-    %     abscissae = [-20,20];
-    %     ordinates = [-20,20];
-    %     xlim(abscissae)
-    %     ylim(ordinates)
+    % Plot robot's pose
     plot_unicycle(robotInterp(i,2),robotInterp(i,3),robotInterp(i,4),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth);
-    % Plot della threshold
-    %     for i = 2:length(viaPoint)
-    %         n=0:0.01:2*pi;
-    %         plot(viaPoint(i,1)+threshold(2)*cos(n), viaPoint(i,2) + threshold(2)*sin(n),'r -','linewidth',2)
-    %     end
-    %legend({'position error'},'Location', 'Best','Orientation','horizontal')
+    label = "Robot";
+    labelpoints(robotInterp(i,2),robotInterp(i,3),label,'NE','buffer',0.5);
 
-    % force Matlab to draw the image at this point (use drawnow or pause)
-    % drawnow
-    %pause(0.2)
+
     movieVector(i) = getframe(figh);
 
     i = i+1;
-
 end
 
 
