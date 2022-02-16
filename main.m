@@ -5,7 +5,7 @@ clc; clear all; close all; warning off;
 
 %%
 
-global W1 W2 % weights of the functional
+global W1 W2 K3 % weights of the functional
 global N St interval % simulation parameters
 global x0 y0 theta0 x1 y1 theta1 % initial conditions and final orientation
 global x y theta u % state and control variables
@@ -184,6 +184,7 @@ for seq = 1:maxPoses-1
             % Current discontinuous term weight
             W1=W1_var(interval);
             W2=W2_var(interval);
+            K3=K3_var(interval);
 
             % Different operation for I1 and I2 and the one below the minimum threshold I3.
             % For all it is necessary to find the input (fmincon), except for interval I3

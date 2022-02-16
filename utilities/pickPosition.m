@@ -14,7 +14,7 @@ while true && i <= maxPoses
         break;
     end
 
-    scatter(viaPoint(i,1),viaPoint(i,2),50,'filled','MarkerEdgeColor',color,'MarkerFaceColor',color);
+    scatter(viaPoint(i,1),viaPoint(i,2),25,'filled','MarkerEdgeColor',color,'MarkerFaceColor',color);
     labels(i) = label + " " + num2str(i);
     labelpoints(viaPoint(i,1),viaPoint(i,2),labels(i),'buffer',0.5);
     hold on

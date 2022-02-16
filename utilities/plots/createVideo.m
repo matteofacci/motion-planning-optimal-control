@@ -6,7 +6,7 @@ figh = figureFullScreen(100);
 txt = "Motion Plan   \rightarrow   Task duration : " + string(max(time)) + " [s]";
 %     "   -   Distance traveled [m]: " + num2str(distanceTraveled) + " ]";
 
-fps = 60;
+fps = 25;
 videoLength = ceil(time(end)); %[s]
 totCameraPic = fps*videoLength;
 
@@ -60,7 +60,8 @@ while i<=length(interp)
     infY = min(interp(:,2))-mean(interp(:,2))*0.5;
     supY = max(interp(:,2))+mean(interp(:,2))*0.5;
     xlim([interp(1:1) interp(end,1)])
-    ylim([infY supY])
+    %ylim([infY supY])
+    ylim('padded');
 
     xlabel('t [s]'), ylabel('X(t) [m]'), title('X coordinates')
 
@@ -78,7 +79,8 @@ while i<=length(interp)
     infY = min(interp(:,3))-mean(interp(:,3))*0.5;
     supY = max(interp(:,3))+mean(interp(:,3))*0.5;
     xlim([interp(1:1) interp(end,1)])
-    ylim([infY supY])
+    %ylim([infY supY])
+    ylim('padded');
 
     xlabel('t [s]'), ylabel('Y(t) [m]'), title('Y coordinates')
 
@@ -96,7 +98,8 @@ while i<=length(interp)
     infY = min(interp(:,8))-mean(interp(:,8))*0.5;
     supY = max(interp(:,8))+mean(interp(:,8))*0.5;
     xlim([interp(1:1) interp(end,1)])
-    ylim([infY supY])
+    %ylim([infY supY])
+    ylim('padded');
 
     xlabel('t [s]'), ylabel('\theta(t) [rad]'), title('\theta coordinates')
 
@@ -114,7 +117,8 @@ while i<=length(interp)
     infY = min(interp(:,4))-mean(interp(:,4))*0.5;
     supY = max(interp(:,4))+mean(interp(:,4))*0.5;
     xlim([interp(1:1) interp(end,1)])
-    ylim([infY supY])
+    %ylim([infY supY])
+    ylim('padded');
 
     xlabel('t [s]'), ylabel('u_{1}(t) [m/s]'), title('u_{1}(t) input')
 
@@ -132,7 +136,9 @@ while i<=length(interp)
     infY = min(interp(:,5))-mean(interp(:,5))*0.5;
     supY = max(interp(:,5))+mean(interp(:,5))*0.5;
     xlim([interp(1:1) interp(end,1)])
-    ylim([infY supY])
+    %ylim([infY supY])
+
+    ylim('padded');
 
     xlabel('t [s]'), ylabel('u_{2}(t) [rad/s]'), title('u_{2}(t) input')
 
@@ -150,7 +156,8 @@ while i<=length(interp)
     infY = min(interp(:,6))-mean(interp(:,6))*0.5;
     supY = max(interp(:,6))+mean(interp(:,6))*0.5;
     xlim([interp(1:1) interp(end,1)])
-    ylim([infY supY])
+    %ylim([infY supY])
+    ylim('padded');
 
     xlabel('t [s]'), ylabel('v_{R}(t) [m/s]'), title('Right wheel velocity')
 
@@ -168,7 +175,8 @@ while i<=length(interp)
     infY = min(interp(:,7))-mean(interp(:,7))*0.5;
     supY = max(interp(:,7))+mean(interp(:,7))*0.5;
     xlim([interp(1:1) interp(end,1)])
-    ylim([infY supY])
+    %ylim([infY supY])
+    ylim('padded');
 
     xlabel('t [s]'), ylabel('v_{L}(t) [m/s]'), title('Left wheel velocity')
 
@@ -189,9 +197,9 @@ while i<=length(interp)
     if interp(i,9) >= 2 && flag_threshold == 0
         count_threshold = count_threshold+1;
         flag_threshold = 1;
-        plotCircle(viaPoint(count_threshold,1),viaPoint(count_threshold,2),threshold(2),'r',2);
+        plotCircle(viaPoint(count_threshold,1),viaPoint(count_threshold,2),threshold(2),'r',1.5);
     elseif interp(i,9) >= 2 && flag_threshold == 1
-        plotCircle(viaPoint(count_threshold,1),viaPoint(count_threshold,2),threshold(2),'r',2);
+        plotCircle(viaPoint(count_threshold,1),viaPoint(count_threshold,2),threshold(2),'r',1.5);
     else
         flag_threshold = 0;
     end
@@ -207,7 +215,7 @@ while i<=length(interp)
         limit = maxPoses;
     end
     for k = 1:limit
-        scatter(viaPoint(k,1),viaPoint(k,2),50,'filled','MarkerEdgeColor','r','MarkerFaceColor','r');
+        scatter(viaPoint(k,1),viaPoint(k,2),25,'filled','MarkerEdgeColor','r','MarkerFaceColor','r');
         labels(k) = "Point" + " " + num2str(k);
         labelpoints(viaPoint(k,1),viaPoint(k,2),labels(k),'buffer',0.5);
     end
