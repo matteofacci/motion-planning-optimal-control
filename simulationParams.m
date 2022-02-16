@@ -11,7 +11,7 @@ bodyLength = wheelBase-2*wheelWidth; % [m]
 bodyWidth = 0.63; % [m]
 bodyDiam = 0.3485; % [m]
 
-vmax = (20/3.6)*(3/4); % maximum linear velocity [m/s]
+vmax = 20/3.6; % maximum linear velocity [m/s]
 d = wheelBase/2; % wheel drive shaft length [m]
 
 %% Control constraints (limits on linear and angular velocities)

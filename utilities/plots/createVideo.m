@@ -3,36 +3,182 @@
 %figh = figure; % figure handle
 %figure(3);
 figh = figureFullScreen(100);
-% txt = "Rocker-Bogie Live Telemetry  \rightarrow   [ Task duration [hh:mm:ss.SSS]: " + string(taskDuration) +...
+txt = "Motion Plan   \rightarrow   Task duration : " + string(max(time)) + " [s]";
 %     "   -   Distance traveled [m]: " + num2str(distanceTraveled) + " ]";
 
-fps = 25;
-videoLength = time(end); %[s]
-totCameraPic = ceil(fps*videoLength);
+fps = 60;
+videoLength = ceil(time(end)); %[s]
+totCameraPic = fps*videoLength;
 
 robot = [time,x_opt,y_opt];
-robotInterp = interparc(totCameraPic,robot(:,1),robot(:,2),robot(:,3),'linear');
+input = [u1_opt,u2_opt,vR,vL];
 
-for i = 1 : length(robotInterp)
-    index_of_last  = find( robot(:,1) <= robotInterp(i,1), 1, 'last');
-    robotInterp(i,4) = theta_opt(index_of_last);
-    robotInterp(i,5) = interval_opt(index_of_last);
+timeInterp = linspace(robot(1,1),robot(end,1),totCameraPic);
+
+interp(:,1) = timeInterp';
+interp(:,2) = interpolation(timeInterp,robot(:,1),robot(:,2));
+interp(:,3) = interpolation(timeInterp,robot(:,1),robot(:,3));
+interp(:,4) = interpolation(timeInterp,robot(:,1),input(:,1));
+interp(:,5) = interpolation(timeInterp,robot(:,1),input(:,2));
+interp(:,6) = interpolation(timeInterp,robot(:,1),input(:,3));
+interp(:,7) = interpolation(timeInterp,robot(:,1),input(:,4));
+%interp(:,8) = interpolation(timeInterp,robot(:,1),theta_opt);
+
+% interp = interparc(totCameraPic,robot(:,1),robot(:,2),robot(:,3),...
+%     input(:,1),input(:,2),input(:,3),input(:,4),'linear');
+
+for i = 1 : length(interp)-1
+    index_of_last  = find( robot(:,1) <= interp(i,1), 1, 'last');
+    interp(i,8) = theta_opt(index_of_last);
+    interp(i,9) = interval_opt(index_of_last);
 end
-robotInterp(end,5) = interval_opt(end);
-robotInterp(end,4) = theta_opt(end);
+interp(end,9) = interval_opt(end);
+interp(end,8) = theta_opt(end);
 
 i=1;
 flag_threshold = 0;
 count_threshold = 1;
 
-while i<=length(robotInterp)
+while i<=length(interp)
 
     % Wipe the slate clean so we are plotting with a blank figure
     clf % clear figure
 
-    %sgtitle(txt)
+    sgtitle(txt)
 
-    axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'),
+    %% X coordinates
+    
+    subplot(5,2,1)
+
+    plot(interp(:,1),interp(:,2),'Color','r');
+    hold on
+    xline(interp(i,1));
+    hold on
+    
+    grid on
+
+    infY = min(interp(:,2))-mean(interp(:,2))*0.5;
+    supY = max(interp(:,2))+mean(interp(:,2))*0.5;
+    xlim([interp(1:1) interp(end,1)])
+    ylim([infY supY])
+
+    xlabel('t [s]'), ylabel('X(t) [m]'), title('X coordinates')
+
+    %% Y coordinates
+    
+    subplot(5,2,3)
+
+    plot(interp(:,1),interp(:,3),'Color','r');
+    hold on
+    xline(interp(i,1));
+    hold on
+    
+    grid on
+
+    infY = min(interp(:,3))-mean(interp(:,3))*0.5;
+    supY = max(interp(:,3))+mean(interp(:,3))*0.5;
+    xlim([interp(1:1) interp(end,1)])
+    ylim([infY supY])
+
+    xlabel('t [s]'), ylabel('Y(t) [m]'), title('Y coordinates')
+
+    %% Theta coordinates
+    
+    subplot(5,2,5)
+
+    plot(interp(:,1),interp(:,8),'Color','r');
+    hold on
+    xline(interp(i,1));
+    hold on
+    
+    grid on
+
+    infY = min(interp(:,8))-mean(interp(:,8))*0.5;
+    supY = max(interp(:,8))+mean(interp(:,8))*0.5;
+    xlim([interp(1:1) interp(end,1)])
+    ylim([infY supY])
+
+    xlabel('t [s]'), ylabel('\theta(t) [rad]'), title('\theta coordinates')
+
+    %% Linear velocity input
+    
+    subplot(5,2,7)
+
+    plot(interp(:,1),interp(:,4),'Color','b');
+    hold on
+    xline(interp(i,1));
+    hold on
+    
+    grid on
+
+    infY = min(interp(:,4))-mean(interp(:,4))*0.5;
+    supY = max(interp(:,4))+mean(interp(:,4))*0.5;
+    xlim([interp(1:1) interp(end,1)])
+    ylim([infY supY])
+
+    xlabel('t [s]'), ylabel('u_{1}(t) [m/s]'), title('u_{1}(t) input')
+
+    %% Angular velocity input
+    
+    subplot(5,2,9)
+
+    plot(interp(:,1),interp(:,5),'Color','b');
+    hold on
+    xline(interp(i,1));
+    hold on
+    
+    grid on
+
+    infY = min(interp(:,5))-mean(interp(:,5))*0.5;
+    supY = max(interp(:,5))+mean(interp(:,5))*0.5;
+    xlim([interp(1:1) interp(end,1)])
+    ylim([infY supY])
+
+    xlabel('t [s]'), ylabel('u_{2}(t) [rad/s]'), title('u_{2}(t) input')
+
+    %% Right wheel velocity
+    
+    subplot(5,2,2)
+
+    plot(interp(:,1),interp(:,6),'Color','b');
+    hold on
+    xline(interp(i,1));
+    hold on
+    
+    grid on
+
+    infY = min(interp(:,6))-mean(interp(:,6))*0.5;
+    supY = max(interp(:,6))+mean(interp(:,6))*0.5;
+    xlim([interp(1:1) interp(end,1)])
+    ylim([infY supY])
+
+    xlabel('t [s]'), ylabel('v_{R}(t) [m/s]'), title('Right wheel velocity')
+
+    %% Left wheel velocity
+    
+    subplot(5,2,4)
+
+    plot(interp(:,1),interp(:,7),'Color','b');
+    hold on
+    xline(interp(i,1));
+    hold on
+    
+    grid on
+
+    infY = min(interp(:,7))-mean(interp(:,7))*0.5;
+    supY = max(interp(:,7))+mean(interp(:,7))*0.5;
+    xlim([interp(1:1) interp(end,1)])
+    ylim([infY supY])
+
+    xlabel('t [s]'), ylabel('v_{L}(t) [m/s]'), title('Left wheel velocity')
+
+
+    %% Robot in motion
+
+    subplot(5,2,[6,8,10])
+
+    axis equal
+    grid on
     abscissae = [min(viaPoint(:,1)-thresholdValue),max(viaPoint(:,1)+thresholdValue)];
     ordinates = [min(viaPoint(:,2)-thresholdValue),max(viaPoint(:,2)+thresholdValue)];
     xlim(abscissae)
@@ -40,11 +186,11 @@ while i<=length(robotInterp)
     hold on
 
     % Plot threshold
-    if robotInterp(i,5) >= 2 && flag_threshold == 0
+    if interp(i,9) >= 2 && flag_threshold == 0
         count_threshold = count_threshold+1;
         flag_threshold = 1;
         plotCircle(viaPoint(count_threshold,1),viaPoint(count_threshold,2),threshold(2),'r',2);
-    elseif robotInterp(i,5) >= 2 && flag_threshold == 1
+    elseif interp(i,9) >= 2 && flag_threshold == 1
         plotCircle(viaPoint(count_threshold,1),viaPoint(count_threshold,2),threshold(2),'r',2);
     else
         flag_threshold = 0;
@@ -67,9 +213,11 @@ while i<=length(robotInterp)
     end
 
     % Plot robot's pose
-    plot_unicycle(robotInterp(i,2),robotInterp(i,3),robotInterp(i,4),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth);
+    plot_unicycle(interp(i,2),interp(i,3),interp(i,8),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth);
     label = "Robot";
-    labelpoints(robotInterp(i,2),robotInterp(i,3),label,'NE','buffer',0.5);
+    labelpoints(interp(i,2),interp(i,3),label,'NE','buffer',0.5);
+
+    xlabel('X [m]'), ylabel('Y [m]'), title('Optimized trajectory')
 
 
     movieVector(i) = getframe(figh);

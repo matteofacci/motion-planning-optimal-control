@@ -1,4 +1,4 @@
-
+close all
 
 figure, plot(time,x_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{1}(t)'), title('x_{1}(t) finale')
 figure, plot(time,y_opt,'k -','linewidth',1), grid on, xlabel('t'), ylabel('x_{2}(t)'), title('x_{2}(t) finale')

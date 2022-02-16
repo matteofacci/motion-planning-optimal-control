@@ -42,8 +42,8 @@ if PICK_POSITION == 0
 else
 
     f = figure(1);
-    abscissae = [0,25];
-    ordinates = [0,25];
+    abscissae = [0,35];
+    ordinates = [0,35];
     xlim(abscissae)
     ylim(ordinates)
     grid on
@@ -297,6 +297,13 @@ theta_opt = M_opt(:,5);
 u1_opt = M_opt(:,7);
 u2_opt = M_opt(:,8);
 interval_opt = M_opt(:,2);
+
+for i = 1:length(u1_opt)
+    [vR(i),vL(i)] = wheels_velocities(u1_opt(i),u2_opt(i),d);
+end
+
+vR = vR';
+vL = vL';
 
 fprintf('-------------------------------------------------------------\n');
 fprintf('OPTIMAL RESULT\n');
