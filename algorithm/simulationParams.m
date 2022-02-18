@@ -53,13 +53,18 @@ W2_var(4) = 0;
 % Fixed weights of the functional
 K1 = 10000; % weight of term x
 K2 = 10000; % weight of term y
-K3 = 10000; % weight of term theta
+%K3 = 100; % weight of term theta
+
+K3_var(1) = 10000;
+K3_var(2) = 10000;
+K3_var(3) = 10000;
+K3_var(4) = 10000;
 
 %% fmincon options
 
-% % Increased performance
+% Increased performance
 % options = optimoptions('fmincon','Display','off',...
-%     'ConstraintTolerance',1e-12,'StepTolerance',1e-10,'MaxFunctionEvaluations',1e10, ...
+%     'ConstraintTolerance',1e-12,'StepTolerance',1e-5,'MaxFunctionEvaluations',1e10, ...
 %     'OptimalityTolerance',1e-12);
 
 % Standard performance 

@@ -1,6 +1,3 @@
-%PROGRAMMA PRINCIPALE PER DETERMINARE IL CONTROLLO OTTIMO IN UN MODELLO
-%UNICICLO
-%--------------------------------------------------------------------------
 clc; clear all; close all; warning off;
 
 %%

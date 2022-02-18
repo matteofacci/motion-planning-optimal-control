@@ -225,7 +225,7 @@ while i<=length(interp)
     label = "Robot";
     labelpoints(interp(i,2),interp(i,3),label,'NE','buffer',0.5);
 
-    xlabel('X [m]'), ylabel('Y [m]'), title('Optimized trajectory')
+    xlabel('X [m]'), ylabel('Y [m]') %, title('Optimized trajectory')
 
 
     movieVector(i) = getframe(figh);

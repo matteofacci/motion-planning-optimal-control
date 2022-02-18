@@ -5,7 +5,7 @@ clc; clear all; close all; warning off;
 
 %%
 
-global W1 W2 % weights of the functional
+global W1 W2 K3 % weights of the functional
 global N St interval % simulation parameters
 global x0 y0 theta0 x1 y1 theta1 % initial conditions and final orientation
 global x y theta u % state and control variables
@@ -162,6 +162,7 @@ while N>0
     % Current discontinuous term weight
     W1=W1_var(interval);
     W2=W2_var(interval);
+    K3=K3_var(interval);
 
     disp(['Variable weight W1 equal to ',num2str(W1)])
     disp(['Variable weight W2 equal to ',num2str(W2)])
@@ -266,7 +267,8 @@ fprintf('-------------------------------------------------------------\n');
 % Table with results
 if interval == 3 && or(switchingInstant(1)~=0,switchingInstant(2)~=0)
     Tab = build_table(switchingInstant,threshold,time,x_opt,y_opt,theta_opt,u1_opt,u2_opt,x1,y1);
-
+    u1_comp = [u1_comp,[0;0;0]];
+    u2_comp = [u2_comp,[0;0;0]];
     disp(Tab);
 
     %% Plots and video

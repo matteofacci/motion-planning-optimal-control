@@ -3,49 +3,58 @@
 %figh = figure; % figure handle
 %figure(3);
 figh = figureFullScreen(100);
-% txt = "Rocker-Bogie Live Telemetry  \rightarrow   [ Task duration [hh:mm:ss.SSS]: " + string(taskDuration) +...
+txt = "Motion Plan   \rightarrow   Task duration : " + string(max(time)) + " [s]";
 %     "   -   Distance traveled [m]: " + num2str(distanceTraveled) + " ]";
 
-fps = 25;
-videoLength = t_end; %[s]
+fps = 15;
+videoLength = ceil(time(end)); %[s]
 totCameraPic = fps*videoLength;
 
-% for j = 1:length(theta_opt)
-%     k=floor(rad2deg(theta_opt(j))/360); % floor arrotonda il rapporto all'intero inferiore
-%     degrees(j) = rad2deg(theta_opt(j))-k*360; % angolo equivalente in gradi
-% end
+%time = table2array(Tab(:,1));
+robot = [table2array(Tab(:,1)),table2array(Tab(:,3)),table2array(Tab(:,4)),table2array(Tab(:,5))];
 
-% robot = [tempo',x_opt',y_opt',deg2rad(degrees')];
-% robotInterp = interparc(totCameraPic,robot(:,1),robot(:,2),robot(:,3),robot(:,4),'linear');
+timeInterp = linspace(robot(1,1),robot(end,1),totCameraPic);
 
-robot = [time',x_opt',y_opt'];
-robotInterp = interparc(totCameraPic,robot(:,1),robot(:,2),robot(:,3),'linear');
+interp(:,1) = timeInterp';
+interp(:,2) = interpolation(timeInterp,robot(:,1),robot(:,2));
+interp(:,3) = interpolation(timeInterp,robot(:,1),robot(:,3));
 
-for i = 1 : length(robotInterp)
-index_of_last  = find( robot(:,1) <= robotInterp(i,1), 1, 'last');
-robotInterp(i,4) = theta_opt(index_of_last);
+for i = 1 : length(interp)-1
+    index_of_last  = find( robot(:,1) <= interp(i,1), 1, 'last');
+    interp(i,4) = robot(index_of_last,4);
 end
+interp(end,4) = robot(end,4);
     
 i=1;
-while i<=length(robotInterp)
+
+while i<=length(interp)
 
     % Wipe the slate clean so we are plotting with a blank figure
     clf % clear figure
 
-    %sgtitle(txt)
+    sgtitle(txt)
 
-    axis square, axis equal, grid on, xlabel('x_{1}'), ylabel('x_{2}'),
+    axis equal
+    grid on
+    abscissae = [min(robot(1,2),x1)-threshold(2),max(robot(1,2),x1)+threshold(2)];
+    ordinates = [min(robot(1,3),y1)-threshold(2),max(robot(1,3),y1)+threshold(2)];
+    xlim(abscissae)
+    ylim(ordinates)
+
     hold on
-    plot_unicycle(robotInterp(i,2),robotInterp(i,3),robotInterp(i,4),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth);
-    % Plot della threshold
+
+ 
+    % Plot threshold
     n=0:0.01:2*pi;
-    plot(x1+threshold(2)*cos(n), y1 + threshold(2)*sin(n),'r -','linewidth',2)
+    plot(x1+threshold(2)*cos(n), y1 + threshold(2)*sin(n),'r -','linewidth',1.5)
 
-    %legend({'position error'},'Location', 'Best','Orientation','horizontal')
+    % Plot robot's pose
+    plot_unicycle(interp(i,2),interp(i,3),interp(i,4),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth);
+    label = "Robot";
+    labelpoints(interp(i,2),interp(i,3),label,'NE','buffer',0.5);
 
-    % force Matlab to draw the image at this point (use drawnow or pause)
-    % drawnow
-    %pause(0.2)
+    xlabel('X [m]'), ylabel('Y [m]'), %title('Optimized trajectory')
+
     movieVector(i) = getframe(figh);
 
     i = i+1;
