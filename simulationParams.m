@@ -45,15 +45,15 @@ K1 = 10000; % weight of term x
 K2 = 10000; % weight of term y
 %K3 = 100; % weight of term theta
 
-K3_var(1) = 10000;
-K3_var(2) = 10000;
+K3_var(1) = 1;
+K3_var(2) = 1000;
 K3_var(3) = 10000;
 K3_var(4) = 10000;
 
 %% fmincon options
 
 % % Increased performance
-% options = optimoptions('fmincon','Display','off',...
+% options = optimoptions('fmincon',...%'Display','off',...
 %     'ConstraintTolerance',1e-12,'StepTolerance',1e-5,'MaxFunctionEvaluations',1e10, ...
 %     'OptimalityTolerance',1e-12);
 

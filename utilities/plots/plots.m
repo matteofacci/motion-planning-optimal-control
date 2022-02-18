@@ -1,10 +1,14 @@
 close all
 
-figure, plot(time,x_opt,'r -','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('X(t) [m]'), title('X coordinates')
-figure, plot(time,y_opt,'r -','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('Y(t) [m]'), title('Y coordinates')
-figure, plot(time,theta_opt,'r -','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('\theta(t) [rad]'), title('\theta coordinates')
-figure, plot(time,u1_opt,'b -','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('u_{1}(t) [rad/s]'), title('u_{1}(t) input')
-figure, plot(time,u2_opt,'b -','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('u_{2}(t) [rad/s]'), title('u_{2}(t) input')
+color(1,:) = [0, 0.4470, 0.7410];
+color(2,:) = [0.8500, 0.3250, 0.0980];
+color(3,:) = [0.4660 0.6740 0.1880];
+
+figure, plot(time,x_opt,'Color',color(2,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('X(t) [m]'), title('X coordinates')
+figure, plot(time,y_opt,'Color',color(2,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('Y(t) [m]'), title('Y coordinates')
+figure, plot(time,theta_opt,'Color',color(2,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('\theta(t) [rad]'), title('\theta coordinates')
+figure, plot(time,u1_opt,'Color',color(1,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('u_{1}(t) [rad/s]'), title('u_{1}(t) input')
+figure, plot(time,u2_opt,'Color',color(1,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('u_{2}(t) [rad/s]'), title('u_{2}(t) input')
 
 % Trajectory
 figure,plot(x_opt,y_opt,'k --','linewidth',1),...

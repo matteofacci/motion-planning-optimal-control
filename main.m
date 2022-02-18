@@ -143,7 +143,7 @@ for seq = 1:maxPoses-1
         theta1 = theta_final;
 
         % Default simulation parameters
-        t_tot_user = t_tot_user+1;
+        t_tot_user = t_tot_user+2;
 
         t_tot = t_tot_user;
         n_samples_user = t_tot*2; % at least two samples per second
