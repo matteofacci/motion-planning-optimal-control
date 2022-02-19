@@ -3,7 +3,7 @@
 %figh = figure; % figure handle
 %figure(3);
 figh = figureFullScreen(100);
-txt = "Motion Plan   \rightarrow   Task duration : " + string(max(time)) + " [s]";
+txt = "Motion Plan   \rightarrow   Task duration : " + string(time(end)) + " [s]";
 %     "   -   Distance traveled [m]: " + num2str(distanceTraveled) + " ]";
 
 fps = 25;
@@ -12,6 +12,11 @@ totCameraPic = fps*videoLength;
 
 robot = [time,x_opt,y_opt];
 input = [u1_opt,u2_opt,vR,vL];
+
+if mod(time(end),1) ~= 0
+    robot(end+1,:) = robot(end,:);
+    input(end+1,:) = input(end,:);
+end
 
 timeInterp = linspace(robot(1,1),robot(end,1),totCameraPic);
 

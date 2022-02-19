@@ -126,135 +126,161 @@ for seq = 1:maxPoses-1
         interval=1;
     end
 
+    startingInterval = interval;
+
     %% Simulation time and initialization
 
-    timeInterval=0;
-    switchingInstant=[0,0]; % vector containing the definitive switch instants
     t_tot_user = 0;
+    totExperiments = 20;
+    attempt = 1;
+    step = 1;
 
+    while attempt <= totExperiments
 
-    while switchingInstant(2) == 0 && interval ~= 3
+    switchingInstant=[0,0]; % vector containing the definitive switch instants
+    interval = startingInterval;
 
-        x0 = x_start;
-        y0 = y_start;
-        theta0 = theta_start;
-        x1 = x_final;
-        y1 = y_final;
-        theta1 = theta_final;
+        while switchingInstant(2) == 0 && interval ~= 3
 
-        % Default simulation parameters
-        t_tot_user = t_tot_user+2;
+            x0 = x_start;
+            y0 = y_start;
+            theta0 = theta_start;
+            x1 = x_final;
+            y1 = y_final;
+            theta1 = theta_final;
 
-        t_tot = t_tot_user;
-        n_samples_user = t_tot*2; % at least two samples per second
+            % Default simulation parameters
+            t_tot_user = t_tot_user+step;
 
-        N=n_samples_user;
-        St=t_tot/n_samples_user; % sample time
-        % Generation of the time axis
-        time=0:St:t_tot; % N+1 elements
+            t_tot = t_tot_user;
+            n_samples_user = t_tot*2; % at least two samples per second
 
-        % Unnecessary input of fmincon
-        A=[];
-        B=[];
-        Aeq=[];
-        Beq=[];
+            N=n_samples_user;
+            St=t_tot/n_samples_user; % sample time
+            % Generation of the time axis
+            time=0:St:t_tot; % N+1 elements
 
-        % Initialization of state and input vectors
-        x_opt=x0;
-        y_opt=y0;
-        theta_opt=theta0;
-        u1_opt=[];
-        u2_opt=[];
+            % Unnecessary input of fmincon
+            A=[];
+            B=[];
+            Aeq=[];
+            Beq=[];
 
-        completed=false; % flag
+            % Initialization of state and input vectors
+            x_opt=x0;
+            y_opt=y0;
+            theta_opt=theta0;
+            u1_opt=[];
+            u2_opt=[];
 
-        %% Main loop (FMINCON)
+            completed=false; % flag
 
-        while N>0
+            %% Main loop (FMINCON)
 
-            timeInterval=timeInterval+1;
-            t_start=(n_samples_user-N)*St; % corresponds to time(Ntot-N + 1);
-            start_index=n_samples_user-N+1;
+            while N>0
 
-            [LB,UB,U0] = input_bounds(N,u1_lb,u1_ub,u2_lb,u2_ub);
+                t_start=(n_samples_user-N)*St; % corresponds to time(Ntot-N + 1);
+                start_index=n_samples_user-N+1;
 
-            % Current discontinuous term weight
-            W1=W1_var(interval);
-            W2=W2_var(interval);
-            K3=K3_var(interval);
+                [LB,UB,U0] = input_bounds(N,u1_lb,u1_ub,u2_lb,u2_ub);
 
-            % Different operation for I1 and I2 and the one below the minimum threshold I3.
-            % For all it is necessary to find the input (fmincon), except for interval I3
-            % with the input set to zero
+                % Current discontinuous term weight
+                W1=W1_var(interval);
+                W2=W2_var(interval);
+                K3=K3_var(interval);
 
-            %% Optimal control strategy
+                % Different operation for I1 and I2 and the one below the minimum threshold I3.
+                % For all it is necessary to find the input (fmincon), except for interval I3
+                % with the input set to zero
 
-            % Target : obtain optimal global variables x,y,theta,u
+                %% Optimal control strategy
 
-            if interval<3 % if the device is in the intervals I1 or I2
+                % Target : obtain optimal global variables x,y,theta,u
 
-                % Call function fmincon
-                [optim_input,cost,EF,optim_output,lambda]...
-                    = fmincon('functional',U0,A,B,Aeq,Beq,LB,UB,[],options);
-            end
+                if interval<3 % if the device is in the intervals I1 or I2
 
-            if interval == 3 % calculate the evolution for null input
-                u_null=zeros(1,2*N);
-                zeroCost=functional(u_null);
-                completed=true;
-            end
-
-            % For the current time interval, I find, if it exists,
-            % the switching instant corresponding to the achievement of one of the threshold values.
-
-            % N input samples, N + 1 status samples,
-            % with the first element equal to the initial status, therefore useless to verify
-            L=2;
-
-
-            while and((x(L)-x1)^2+(y(L)-y1)^2>=threshold(interval+1)^2 ...  % while the device is in the interval ...
-                    && (x(L)-x1)^2+(y(L)-y1)^2<threshold(interval)^2, L<=N) % length(x)=N+1
-                L=L+1; % iterate until you get to the end of the interval
-            end
-
-            if L==N+1 % x(N+1)=x(N Tc)
-                completed=true;
-            end
-
-            if and((x(L)-x1)^2+(y(L)-y1)^2<threshold(interval+1)^2, not(completed))
-                if interval==1
-                    switchingInstant(interval)=(L-1)*St+t_start;
-                    % Calculation of reaction time between threshold and switch
-                    dSwitch1=((x(L)-x1)^2+(y(L)-y1)^2)^(1/2); % first sample position after the switch
-                    dThresholdSwitch=threshold(2)-dSwitch1; % distance between the sample and the threshold
-                    tReaction=dThresholdSwitch/abs(u(L-1)); % reaction time for the switch
+                    % Call function fmincon
+                    [optim_input,cost,EF,optim_output,lambda]...
+                        = fmincon('functional',U0,A,B,Aeq,Beq,LB,UB,[],options);
                 end
-                if interval==2
-                    switchingInstant(interval)=(L-1)*St+t_start;
-                    % Calculation of total arrival time between threshold and switch
-                    dSwitch2=((x(L)-x1)^2+(y(L)-y1)^2)^(1/2); % first sample position after the switch
-                    dSogliaSwitch2=threshold(3)-dSwitch2; % distance between the sample and the final threshold
-                    tStop=dSogliaSwitch2/abs(u(L-1)); % reaction time for null input
+
+                if interval == 3 % calculate the evolution for null input
+                    u_null=zeros(1,2*N);
+                    zeroCost=functional(u_null);
+                    completed=true;
                 end
-                interval=interval+1;
+
+                % For the current time interval, I find, if it exists,
+                % the switching instant corresponding to the achievement of one of the threshold values.
+
+                % N input samples, N + 1 status samples,
+                % with the first element equal to the initial status, therefore useless to verify
+                L=2;
+
+
+                while and((x(L)-x1)^2+(y(L)-y1)^2>=threshold(interval+1)^2 ...  % while the device is in the interval ...
+                        && (x(L)-x1)^2+(y(L)-y1)^2<threshold(interval)^2, L<=N) % length(x)=N+1
+                    L=L+1; % iterate until you get to the end of the interval
+                end
+
+                if L==N+1 % x(N+1)=x(N Tc)
+                    completed=true;
+                end
+
+                if and((x(L)-x1)^2+(y(L)-y1)^2<threshold(interval+1)^2, not(completed))
+                    if interval==1
+                        switchingInstant(interval)=(L-1)*St+t_start;
+                        % Calculation of reaction time between threshold and switch
+                        dSwitch1=((x(L)-x1)^2+(y(L)-y1)^2)^(1/2); % first sample position after the switch
+                        dThresholdSwitch=threshold(2)-dSwitch1; % distance between the sample and the threshold
+                        tReaction=dThresholdSwitch/abs(u(L-1)); % reaction time for the switch
+                    end
+                    if interval==2
+                        switchingInstant(interval)=(L-1)*St+t_start;
+                        % Calculation of total arrival time between threshold and switch
+                        dSwitch2=((x(L)-x1)^2+(y(L)-y1)^2)^(1/2); % first sample position after the switch
+                        dSogliaSwitch2=threshold(3)-dSwitch2; % distance between the sample and the final threshold
+                        tStop=dSogliaSwitch2/abs(u(L-1)); % reaction time for null input
+                    end
+                    interval=interval+1;
+                end
+
+                if and((x(L)-x1)^2+(y(L)-y1)^2>=threshold(interval)^2, not(completed))
+                    interval=interval-1;
+                end
+
+                t_end=(n_samples_user-N+(L-1))*St;
+                end_index=(n_samples_user-N+(L-1)+1);
+
+                %% Update of state and input vectors
+
+                [x,y,theta,u,x0,y0,theta0,x_opt,y_opt,theta_opt,u1_opt,u2_opt] = update_variables(N,L,x,y,theta,u,x_opt,y_opt,theta_opt,u1_opt,u2_opt);
+
+                % Remaining samples
+                N=N-(L-1);
             end
 
-            if and((x(L)-x1)^2+(y(L)-y1)^2>=threshold(interval)^2, not(completed))
-                interval=interval-1;
-            end
 
-            t_end=(n_samples_user-N+(L-1))*St;
-            end_index=(n_samples_user-N+(L-1)+1);
-
-            %% Update of state and input vectors
-
-            [x,y,theta,u,x0,y0,theta0,x_opt,y_opt,theta_opt,u1_opt,u2_opt] = update_variables(N,L,x,y,theta,u,x_opt,y_opt,theta_opt,u1_opt,u2_opt);
-
-            % Remaining samples
-            N=N-(L-1);
         end
+        evaluation_matrix{attempt,1,:} = time;
+        evaluation_matrix{attempt,2,:} = x_opt;
+        evaluation_matrix{attempt,3,:} = y_opt;
+        evaluation_matrix{attempt,4,:} = theta_opt;
+        evaluation_matrix{attempt,5,:} = u1_opt;
+        evaluation_matrix{attempt,6,:} = u2_opt;
+        evaluation_matrix{attempt,7,:} = switchingInstant;
+        evaluation_matrix{attempt,8,:} = tReaction;
+        evaluation_matrix{attempt,9,:} = dThresholdSwitch;
+        evaluation_matrix{attempt,10,:} = tStop;
+        evaluation_matrix{attempt,11,:} = x_final;
+        evaluation_matrix{attempt,12,:} = y_final;
+        evaluation_matrix{attempt,13,:} = theta_final;
+
+        attempt = attempt+1;
 
     end
+
+    [standing_matrix{seq},switchingInstant,time,x_opt,y_opt,theta_opt,u1_opt,u2_opt,tReaction,dThresholdSwitch,tStop] = overall_standings(evaluation_matrix);
 
     disp('-------------------------------------------------------------')
 
@@ -304,7 +330,7 @@ vR = vR';
 vL = vL';
 
 fprintf('-------------------------------------------------------------\n');
-fprintf('OPTIMAL RESULT\n');
+fprintf('OPTIMAL RESULT\n\n');
 
 disp(T_opt);
 
