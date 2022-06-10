@@ -59,9 +59,9 @@ else
     % Device starting orientation input (in degrees)
     theta0_grad = value_from_user('Initial orientation in degrees [0 °]: ',0);
     theta0 = mod(deg2rad(theta0_grad),2*pi); % conversion to radians
-%     % Device final orientation input (in degrees)
-%     theta1_grad = value_from_user('Final orientation in degrees [0 °]: ',0);
-%     theta1 = deg2rad(theta1_grad); % conversion to radians
+    %     % Device final orientation input (in degrees)
+    %     theta1_grad = value_from_user('Final orientation in degrees [0 °]: ',0);
+    %     theta1 = deg2rad(theta1_grad); % conversion to radians
 
     theta1 = computeTheta(x0,y0,x1,y1);
     %theta1 = mod(theta1,2*pi);
@@ -107,6 +107,7 @@ if isempty(t_tot)
     t_tot = t_tot_user;
 end
 
+% n_samples_user = t_tot; % one sample per second
 n_samples_user = t_tot*2; % at least two samples per second
 
 N=n_samples_user;

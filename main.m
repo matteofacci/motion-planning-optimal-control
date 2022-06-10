@@ -14,6 +14,7 @@ addpath(genpath('videos'));
 PICK_POSITION = 1;
 maxPoses = 10;
 returnToBase = 1;
+printFigures = 0; % Set 1 for printing figures in eps format
 
 
 %% Starting and ending poses by user input
@@ -76,6 +77,10 @@ grid on
 axis equal
 for i = 1:maxPoses
     plot_unicycle(viaPoint(i,1),viaPoint(i,2),viaPoint(i,3),wheelBase,wheelWidth,wheelDiam,bodyLength,bodyWidth)
+end
+
+if printFigures == 1
+    print('figure_13','-depsc2','-r300'); % saves the file in eps format with name
 end
 
 hold off
@@ -153,6 +158,7 @@ for seq = 1:maxPoses-1
             t_tot_user = t_tot_user+step;
 
             t_tot = t_tot_user;
+            % n_samples_user = t_tot; % one sample per second
             n_samples_user = t_tot*2; % at least two samples per second
 
             N=n_samples_user;

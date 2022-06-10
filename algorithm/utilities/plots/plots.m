@@ -1,5 +1,7 @@
 close all
 
+printFigures = 0; % Set 1 for printing figures in eps format
+
 % set(0, 'DefaultTextInterpreter', 'tex')
 % set(0, 'DefaultLegendInterpreter', 'tex')
 % set(gca, 'TickLabelInterpreter', 'tex')
@@ -13,10 +15,35 @@ color(2,:) = [0.8500, 0.3250, 0.0980];
 color(3,:) = [0.4660 0.6740 0.1880];
 
 figure, plot(time,x_opt,'Color',color(2,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('X(t) [m]'), title('X coordinates')
+
+if printFigures == 1
+    print('figure_8','-depsc2','-r300'); % saves the file in eps format with name
+end
+
 figure, plot(time,y_opt,'Color',color(2,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('Y(t) [m]'), title('Y coordinates')
+
+if printFigures == 1
+    print('figure_10','-depsc2','-r300'); % saves the file in eps format with name
+end
 figure, plot(time,theta_opt,'Color',color(2,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('\theta(t) [rad]'), title('\theta coordinates')
+
+if printFigures == 1
+    print('figure_12','-depsc2','-r300'); % saves the file in eps format with name
+end
+
 figure, plot(time(1:n_samples_user),u1_opt,'Color',color(1,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('u_{1}(t) [rad/s]'), title('u_{1}(t) input')
+
+if printFigures == 1
+    print('figure_4','-depsc2','-r300'); % saves the file in eps format with name
+end
+
 figure, plot(time(1:n_samples_user),u2_opt,'Color',color(1,:),'LineStyle','-','linewidth',2), grid on, xlim('tight'),ylim('padded'), xlabel('t [s]'), ylabel('u_{2}(t) [rad/s]'), title('u_{2}(t) input')
+
+if printFigures == 1
+    print('figure_6','-depsc2','-r300'); % saves the file in eps format with name
+end
+
+%%
 
 figure, grid on, xlim('tight'),ylim('padded'),xlabel('t [s]'), ylabel('X(t) [m]'), title('X coordinates (comparison)')
 hold on
@@ -34,6 +61,10 @@ plot(time(index_of_first(3):end),x_comp(3,index_of_first(3):end),...
 legend ('Interval 1','Interval 2','Null input','best')
 xline(time(index_of_first),'-',{'Interval 1','Interval 2', 'Null input'},...
     'LabelOrientation','aligned','HandleVisibility','off')
+
+if printFigures == 1
+    print('figure_7','-depsc2','-r300'); % saves the file in eps format with name
+end
 
 %%
 
@@ -54,6 +85,10 @@ legend ('Interval 1','Interval 2','Null input','best')
 xline(time(index_of_first),'-',{'Interval 1','Interval 2', 'Null input'},...
     'LabelOrientation','aligned','HandleVisibility','off')
 
+if printFigures == 1
+    print('figure_9','-depsc2','-r300'); % saves the file in eps format with name
+end
+
 %%
 
 figure, grid on, xlim('tight'),ylim('padded'),xlabel('t [s]'), ylabel('\theta(t) [rad]'), title('\theta coordinates (comparison)')
@@ -72,6 +107,10 @@ plot(time(index_of_first(3):end),theta_comp(3,index_of_first(3):end),...
 legend ('Interval 1','Interval 2','Null input','best')
 xline(time(index_of_first),'-',{'Interval 1','Interval 2', 'Null input'},...
     'LabelOrientation','aligned','HandleVisibility','off')
+
+if printFigures == 1
+    print('figure_11','-depsc2','-r300'); % saves the file in eps format with name
+end
 
 %%
 
@@ -92,6 +131,10 @@ legend ('Interval 1','Interval 2','Null input','best')
 xline(time(index_of_first),'-',{'Interval 1','Interval 2', 'Null input'},...
     'LabelOrientation','aligned','HandleVisibility','off')
 
+if printFigures == 1
+    print('figure_3','-depsc2','-r300'); % saves the file in eps format with name
+end
+
 %%
 
 figure, grid on, xlim('tight'),ylim('padded'),xlabel('t [s]'), ylabel('u_{2}(t) [rad/s]'), title('u_{2}(t) input (comparison)')
@@ -111,6 +154,12 @@ legend ('Interval 1','Interval 2','Null input','best')
 xline(time(index_of_first),'-',{'Interval 1','Interval 2', 'Null input'},...
     'LabelOrientation','aligned','HandleVisibility','off')
 
+if printFigures == 1
+    print('figure_5','-depsc2','-r300'); % saves the file in eps format with name
+end
+
+%%
+
 % Plot trajectory
 figure,plot(x_opt,y_opt,'k --','linewidth',1),...
     axis square, axis equal, grid on, xlim('padded'),ylim('padded'), xlabel('X [m]'), ylabel('Y [m]'), title('Optimized trajectory')
@@ -123,6 +172,12 @@ n=0:0.01:2*pi;
 plot(x1 + threshold(2)*cos(n),y1 + threshold(2)*sin(n),'r -','linewidth',2) 
 hold off
 
+if printFigures == 1
+    print('figure_1','-depsc2','-r300'); % saves the file in eps format with name
+end
+
+%%
+
 % Plot confronto traiettorie per ogni intervallo
 figure,plot(x_comp(1,:),y_comp(1,:), '-- o','linewidth',1),...
     axis square, axis equal, grid on, xlim('padded'),ylim('padded'),xlabel('X [m]'), ylabel('Y [m]'), title('Optimized trajectory vs. Standard trajectory')
@@ -130,5 +185,8 @@ hold on
 plot(x_opt,y_opt, 'k -- o','linewidth',1)
 hold on
 legend ('Standard trajectory','Optimized trajectory','Location', 'Best')
-
 hold off
+
+if printFigures == 1
+    print('figure_2','-depsc2','-r300'); % saves the file in eps format with name
+end
