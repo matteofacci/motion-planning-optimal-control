@@ -1,4 +1,4 @@
-# optimal-control
+# Optimal control based motion planning strategy for mobile robotic platforms
 
 Automatic motion planning is one of the most significant challenges facing autonomous mobile robotics. The goal is to be able to specify a task in a high-level language and have the robot automatically compile this specification into a set of low-level motion primitives, or feedback controllers, to accomplish the mission. 
 
